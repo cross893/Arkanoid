@@ -1,5 +1,5 @@
 // Main.cpp : Defines the entry point for the application.
-//123
+//
 
 #include "framework.h"
 #include "Main.h"
