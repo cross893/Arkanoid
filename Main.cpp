@@ -1,4 +1,4 @@
-// Arkanoid.cpp : Defines the entry point for the application.
+// Main.cpp : Defines the entry point for the application.
 //
 
 #include "framework.h"
