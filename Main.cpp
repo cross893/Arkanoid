@@ -70,7 +70,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.hInstance      = hInstance;
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ARKANOID));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = CreateSolidBrush(RGB(0, 0, 0));
+    wcex.hbrBackground  = CreateSolidBrush(RGB(15, 63, 31));
     wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_ARKANOID);
     wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
@@ -85,6 +85,8 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // Store instance handle in our global variable
+
+   Finit();
 
    RECT window_rect;
    window_rect.left = 0;
@@ -103,40 +105,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    UpdateWindow(hWnd);
 
    return TRUE;
-}
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void draw_brick(HDC hdc, int x, int y, bool is_cyan)
-{
-    if (is_cyan)
-    {
-        HPEN pen_cyan = CreatePen(PS_SOLID, 0, RGB(85, 255, 255));
-        HBRUSH brush_cyan = CreateSolidBrush(RGB(85, 255, 255));
-        SelectObject(hdc, pen_cyan);
-        SelectObject(hdc, brush_cyan);
-        Rectangle(hdc, x * 3, y * 3, (x + 15) * 3, (y + 7) * 3);
-    }
-    else
-    {
-        HPEN pen_magenta = CreatePen(PS_SOLID, 0, RGB(255, 85, 255));
-        HBRUSH brush_magenta = CreateSolidBrush(RGB(255, 85, 255));
-        SelectObject(hdc, pen_magenta);
-        SelectObject(hdc, brush_magenta);
-        Rectangle(hdc, x * 3, y * 3, (x + 15) * 3, (y + 7) * 3);
-    }
-}
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void draw_frame(HDC hdc)
-{
-    draw_brick(hdc, 8, 6, false);
-    draw_brick(hdc, 8, 6 + 8, true);
 }
 
 
@@ -175,7 +143,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
 
-            draw_frame(hdc);
+            Fdraw_frame(hdc);
 
             EndPaint(hWnd, &ps);
         }
@@ -205,6 +173,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_INITDIALOG:
         return (INT_PTR)TRUE;
 
+
     case WM_COMMAND:
         if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
         {
@@ -212,8 +181,6 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
             return (INT_PTR)TRUE;
         }
         break;
-
-
     }
     return (INT_PTR)FALSE;
 }
