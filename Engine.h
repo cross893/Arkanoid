@@ -2,5 +2,5 @@
 
 #include <windows.h>
 
-void Finit();
-void Fdraw_frame(HDC hdc);
+void F_init();
+void F_draw_frame(HDC hdc);

@@ -86,7 +86,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // Store instance handle in our global variable
 
-   Finit();
+   F_init();
 
    RECT window_rect;
    window_rect.left = 0;
@@ -143,7 +143,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
 
-            Fdraw_frame(hdc);
+            F_draw_frame(hdc);
 
             EndPaint(hWnd, &ps);
         }
