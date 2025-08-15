@@ -86,8 +86,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // Store instance handle in our global variable
 
-   F_init();
-
    RECT window_rect;
    window_rect.left = 0;
    window_rect.top = 0;
@@ -100,6 +98,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    if (hWnd == 0)
       return FALSE;
+
+   F_init_engine(hWnd);
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
@@ -152,6 +152,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_DESTROY:
         PostQuitMessage(0);
+        break;
+
+
+    case WM_KEYDOWN:
+        switch (wParam)
+        {
+        case VK_LEFT:
+            return F_on_key_down(EKT_left);
+
+
+        case VK_RIGHT:
+            return F_on_key_down(EKT_right);
+
+
+        case VK_SPACE:
+            return F_on_key_down(EKT_space);
+        }
         break;
 
 

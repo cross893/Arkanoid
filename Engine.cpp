@@ -16,8 +16,9 @@ enum E_brick_type
     EBT_cyan
 };
 
-HPEN pen_white_fat, pen_white, pen_light_red, pen_cyan, pen_dark_red, pen_blue;
-HBRUSH brush_white, brush_light_red, brush_cyan, brush_dark_red, brush_blue;
+HWND G_hwnd;
+HPEN pen_white_fat, pen_bg, pen_white, pen_light_red, pen_cyan, pen_dark_red, pen_blue;
+HBRUSH brush_bg, brush_white, brush_light_red, brush_cyan, brush_dark_red, brush_blue;
 
 const int G_global_scale = 3;
 const int G_brick_width = 15;
@@ -27,7 +28,13 @@ const int G_cell_height = 8;
 const int G_level_x_offset = 8;
 const int G_level_y_offset = 6;
 const int G_circle_size = 7;
+const int y_pos_platform = 185;
+const int platform_height = 7;
+
 int G_inner_width = 21;
+int x_pos_platform = 0;
+int x_step_platform = G_global_scale;
+int platform_width = 28;
 
 char level_01[14][12] =
 {// Создание первого уровня
@@ -58,9 +65,11 @@ void F_create_pen_brush(unsigned char r, unsigned char g, unsigned char b, HPEN 
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_init()
-{// Присвоение определенного цвета к перу и кисти
+void F_init_engine(HWND hwnd)
+{// Настройка игры при старте
+    G_hwnd = hwnd;
     pen_white_fat = CreatePen(PS_SOLID, G_global_scale, RGB(255, 255, 255));
+    F_create_pen_brush(15, 63, 31, pen_bg, brush_bg);
     F_create_pen_brush(255, 255, 255, pen_white, brush_white);
     F_create_pen_brush(255, 85, 85, pen_light_red, brush_light_red);
     F_create_pen_brush(85, 255, 255, pen_cyan, brush_cyan);
@@ -231,6 +240,11 @@ void F_draw_level(HDC hdc)
 //------------------------------------------------------------------------------------------------------------
 void F_draw_platform(HDC hdc, int x, int y)
 {// Отрисовка платформы
+
+    SelectObject(hdc, pen_bg);
+    SelectObject(hdc, brush_bg);
+    Rectangle(hdc, x * G_global_scale, y * G_global_scale, (x + platform_width) * G_global_scale, (y + platform_height) * G_global_scale);
+
     // Рисуем боковые шарики
     SelectObject(hdc, pen_dark_red);
     SelectObject(hdc, brush_dark_red);
@@ -256,13 +270,54 @@ void F_draw_platform(HDC hdc, int x, int y)
 void F_draw_frame(HDC hdc)
 {// Отрисовка игрового поля
     //F_draw_level(hdc);
-    //F_draw_platform(hdc, 50, 100);
+    F_draw_platform(hdc, x_pos_platform, y_pos_platform);
 
-    int i;
+    //int i;
 
-    for (i = 0; i < 16; i++)
-    {
-        F_draw_brick_letter(hdc, 100, 20 + i * G_cell_width * G_global_scale / 2, EBT_cyan, ELT_o, i);
-        F_draw_brick_letter(hdc, 150, 20 + i * G_cell_width * G_global_scale / 2, EBT_light_red, ELT_o, i);
-    }
+    //for (i = 0; i < 16; i++)
+    //{
+    //    F_draw_brick_letter(hdc, 100, 20 + i * G_cell_width * G_global_scale / 2, EBT_cyan, ELT_o, i);
+    //    F_draw_brick_letter(hdc, 150, 20 + i * G_cell_width * G_global_scale / 2, EBT_light_red, ELT_o, i);
+    //}
 }// void F_draw_frame
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void F_redraw_platform()
+{
+    RECT platform_rect;
+
+    platform_rect.left = x_pos_platform * G_global_scale;
+    platform_rect.top = y_pos_platform * G_global_scale;
+    platform_rect.right = platform_rect.left + platform_width * G_global_scale;
+    platform_rect.bottom = platform_rect.top + platform_height * G_global_scale;
+    InvalidateRect(G_hwnd, &platform_rect, FALSE);
+}// void F_redraw_platform
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+int F_on_key_down(E_key_type key_type)
+{// Функция нажатия клавиш
+    switch (key_type)
+    {
+    case EKT_left:
+        x_pos_platform -= x_step_platform;
+        F_redraw_platform();
+        break;
+
+
+    case EKT_right:
+        x_pos_platform += x_step_platform;
+        F_redraw_platform();
+        break;
+
+
+    case EKT_space:
+        break;
+    }
+    return 0;
+}// int F_on_key_down
