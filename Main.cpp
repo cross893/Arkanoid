@@ -143,7 +143,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
 
-            F_draw_frame(hdc);
+            F_draw_frame(hdc, ps.rcPaint);
 
             EndPaint(hWnd, &ps);
         }

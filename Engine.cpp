@@ -27,16 +27,20 @@ const int G_cell_width = 16;
 const int G_cell_height = 8;
 const int G_level_x_offset = 8;
 const int G_level_y_offset = 6;
+const int G_level_width = 14;
+const int G_level_height = 12;
 const int G_circle_size = 7;
-const int y_pos_platform = 185;
-const int platform_height = 7;
+const int G_y_pos_platform = 185;
+const int G_platform_height = 7;
 
 int G_inner_width = 21;
-int x_pos_platform = 0;
-int x_step_platform = G_global_scale;
-int platform_width = 28;
+int G_x_pos_platform = 0;
+int G_x_step_platform = G_global_scale * 2;
+int G_platform_width = 28;
+RECT G_platform_rect, G_prev_platform_rect;
+RECT G_level_rect;
 
-char level_01[14][12] =
+char level_01[G_level_width][G_level_height] =
 {// Создание первого уровня
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -65,6 +69,23 @@ void F_create_pen_brush(unsigned char r, unsigned char g, unsigned char b, HPEN 
 
 
 //------------------------------------------------------------------------------------------------------------
+void F_redraw_platform()
+{
+    G_prev_platform_rect = G_platform_rect;
+
+    G_platform_rect.left = (G_level_x_offset + G_x_pos_platform) * G_global_scale;
+    G_platform_rect.top = G_y_pos_platform * G_global_scale;
+    G_platform_rect.right = G_platform_rect.left + G_platform_width * G_global_scale;
+    G_platform_rect.bottom = G_platform_rect.top + G_platform_height * G_global_scale;
+
+    InvalidateRect(G_hwnd, &G_prev_platform_rect, FALSE);
+    InvalidateRect(G_hwnd, &G_platform_rect, FALSE);
+}// void F_redraw_platform
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
 void F_init_engine(HWND hwnd)
 {// Настройка игры при старте
     G_hwnd = hwnd;
@@ -75,6 +96,13 @@ void F_init_engine(HWND hwnd)
     F_create_pen_brush(85, 255, 255, pen_cyan, brush_cyan);
     F_create_pen_brush(151, 0, 0, pen_dark_red, brush_dark_red);
     F_create_pen_brush(0, 128, 192, pen_blue, brush_blue);
+
+    G_level_rect.left = G_level_x_offset * G_global_scale;
+    G_level_rect.top = G_level_y_offset * G_global_scale;
+    G_level_rect.right = G_level_rect.left + G_cell_width * G_level_width * G_global_scale;
+    G_level_rect.bottom = G_level_rect.top + G_cell_height * G_level_height * G_global_scale;
+
+    F_redraw_platform();
 }// void F_init
 
 
@@ -243,7 +271,7 @@ void F_draw_platform(HDC hdc, int x, int y)
 
     SelectObject(hdc, pen_bg);
     SelectObject(hdc, brush_bg);
-    Rectangle(hdc, x * G_global_scale, y * G_global_scale, (x + platform_width) * G_global_scale, (y + platform_height) * G_global_scale);
+    Rectangle(hdc, G_prev_platform_rect.left, G_prev_platform_rect.top, G_prev_platform_rect.right, G_prev_platform_rect.bottom);
 
     // Рисуем боковые шарики
     SelectObject(hdc, pen_dark_red);
@@ -267,10 +295,15 @@ void F_draw_platform(HDC hdc, int x, int y)
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_draw_frame(HDC hdc)
+void F_draw_frame(HDC hdc, RECT &paint_area)
 {// Отрисовка игрового поля
-    //F_draw_level(hdc);
-    F_draw_platform(hdc, x_pos_platform, y_pos_platform);
+    RECT intersection_rect;
+
+    if (IntersectRect(&intersection_rect, &paint_area, &G_level_rect))
+        F_draw_level(hdc);
+
+    if (IntersectRect(&intersection_rect, &paint_area, &G_platform_rect) )
+        F_draw_platform(hdc, G_level_x_offset + G_x_pos_platform, G_y_pos_platform);
 
     //int i;
 
@@ -285,33 +318,18 @@ void F_draw_frame(HDC hdc)
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_redraw_platform()
-{
-    RECT platform_rect;
-
-    platform_rect.left = x_pos_platform * G_global_scale;
-    platform_rect.top = y_pos_platform * G_global_scale;
-    platform_rect.right = platform_rect.left + platform_width * G_global_scale;
-    platform_rect.bottom = platform_rect.top + platform_height * G_global_scale;
-    InvalidateRect(G_hwnd, &platform_rect, FALSE);
-}// void F_redraw_platform
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
 int F_on_key_down(E_key_type key_type)
 {// Функция нажатия клавиш
     switch (key_type)
     {
     case EKT_left:
-        x_pos_platform -= x_step_platform;
+        G_x_pos_platform -= G_x_step_platform;
         F_redraw_platform();
         break;
 
 
     case EKT_right:
-        x_pos_platform += x_step_platform;
+        G_x_pos_platform += G_x_step_platform;
         F_redraw_platform();
         break;
 
