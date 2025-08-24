@@ -172,6 +172,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
 
+    case WM_TIMER:
+        if (wParam == G_timer_id)
+            return F_on_timer();
+        break;
+
+
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }

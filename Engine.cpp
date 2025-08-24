@@ -32,13 +32,22 @@ const int G_level_height = 12;
 const int G_circle_size = 7;
 const int G_y_pos_platform = 185;
 const int G_platform_height = 7;
+const int G_ball_size = 4;
+const int G_max_x_pos = G_level_x_offset + G_cell_width * G_level_width - G_ball_size;
+const int G_max_y_pos = 199 - G_ball_size;
 
 int G_inner_width = 21;
 int G_x_pos_platform = 0;
 int G_x_step_platform = G_global_scale * 2;
 int G_platform_width = 28;
+int G_ball_x_pos = 20;
+int G_ball_y_pos = 170;
+double G_ball_speed = 3.0, G_ball_direction = M_PI - M_PI_4;
+
 RECT G_platform_rect, G_prev_platform_rect;
 RECT G_level_rect;
+RECT G_ball_rect;
+RECT G_prev_ball_rect;
 
 char level_01[G_level_width][G_level_height] =
 {// Создание первого уровня
@@ -103,6 +112,8 @@ void F_init_engine(HWND hwnd)
     G_level_rect.bottom = G_level_rect.top + G_cell_height * G_level_height * G_global_scale;
 
     F_redraw_platform();
+
+    SetTimer(G_hwnd, G_timer_id, 50, 0);
 }// void F_init
 
 
@@ -295,11 +306,26 @@ void F_draw_platform(HDC hdc, int x, int y)
 
 
 //------------------------------------------------------------------------------------------------------------
+void F_draw_ball(HDC hdc, RECT& paint_area)
+{
+    SelectObject(hdc, pen_bg);
+    SelectObject(hdc, brush_bg);
+    Ellipse(hdc, G_prev_ball_rect.left, G_prev_ball_rect.top, G_prev_ball_rect.right, G_prev_ball_rect.bottom);
+
+    SelectObject(hdc, pen_white);
+    SelectObject(hdc, brush_white);
+    Ellipse(hdc, G_ball_rect.left, G_ball_rect.top, G_ball_rect.right, G_ball_rect.bottom);
+}// void F_draw_ball
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
 void F_draw_frame(HDC hdc, RECT &paint_area)
 {// Отрисовка игрового поля
     RECT intersection_rect;
 
-    if (IntersectRect(&intersection_rect, &paint_area, &G_level_rect))
+    if (IntersectRect(&intersection_rect, &paint_area, &G_level_rect) )
         F_draw_level(hdc);
 
     if (IntersectRect(&intersection_rect, &paint_area, &G_platform_rect) )
@@ -312,6 +338,9 @@ void F_draw_frame(HDC hdc, RECT &paint_area)
     //    F_draw_brick_letter(hdc, 100, 20 + i * G_cell_width * G_global_scale / 2, EBT_cyan, ELT_o, i);
     //    F_draw_brick_letter(hdc, 150, 20 + i * G_cell_width * G_global_scale / 2, EBT_light_red, ELT_o, i);
     //}
+
+    if (IntersectRect(&intersection_rect, &paint_area, &G_ball_rect) )
+        F_draw_ball(hdc, paint_area);
 }// void F_draw_frame
 
 
@@ -339,3 +368,63 @@ int F_on_key_down(E_key_type key_type)
     }
     return 0;
 }// int F_on_key_down
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void F_move_ball()
+{
+    int next_x_pos, next_y_pos;
+
+    G_prev_ball_rect = G_ball_rect;
+
+    next_x_pos = G_ball_x_pos + (int)(G_ball_speed * cos(G_ball_direction));
+    next_y_pos = G_ball_y_pos - (int)(G_ball_speed * sin(G_ball_direction));
+
+    if (next_x_pos < 0)
+    {
+        next_x_pos = -next_x_pos;
+        G_ball_direction = M_PI - G_ball_direction;
+    }
+
+    if (next_y_pos < G_level_y_offset)
+    {
+        next_y_pos = G_level_y_offset  - (next_y_pos - G_level_y_offset);
+        G_ball_direction = -G_ball_direction;
+    }
+
+    if (next_x_pos > G_max_x_pos)
+    {
+        next_x_pos = G_max_x_pos - (next_x_pos - G_max_x_pos);
+        G_ball_direction = M_PI - G_ball_direction;
+    }
+
+    if (next_y_pos > G_max_y_pos)
+    {
+        next_y_pos = G_max_y_pos - (next_y_pos - G_max_y_pos);
+        G_ball_direction = M_PI + (M_PI - G_ball_direction);
+    }
+
+    G_ball_x_pos = next_x_pos;
+    G_ball_y_pos = next_y_pos;
+
+    G_ball_rect.left = (G_level_x_offset + G_ball_x_pos) * G_global_scale;
+    G_ball_rect.top = (G_level_y_offset + G_ball_y_pos) * G_global_scale;
+    G_ball_rect.right = G_ball_rect.left + G_ball_size * G_global_scale;
+    G_ball_rect.bottom = G_ball_rect.top + G_ball_size * G_global_scale;
+
+    InvalidateRect(G_hwnd, &G_prev_ball_rect, FALSE);
+    InvalidateRect(G_hwnd, &G_ball_rect, FALSE);
+}// void F_move_ball
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+int F_on_timer()
+{
+    F_move_ball();
+
+    return 0;
+}// int F_on_timer
