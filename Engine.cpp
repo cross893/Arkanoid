@@ -148,7 +148,7 @@ void F_draw_brick(HDC hdc, int x, int y, E_brick_type brick_type)
 
     default:
         return;
-    }
+    }// end switch
 
     SelectObject(hdc, pen);
     SelectObject(hdc, brush);
@@ -177,7 +177,7 @@ void F_set_brick_letter_color(bool is_switch_color, HPEN &front_pen, HBRUSH &fro
 
         back_pen =      pen_light_red;
         back_brush =    brush_light_red;
-    }
+    }// endif
 }// void F_set_brick_letter_color
 
 
@@ -206,13 +206,10 @@ void F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_type, E_lette
         rotation_angle = 2.0 * M_PI / 16.0 * (double)(8 - rotation_step);
 
     if (rotation_step > 4 && rotation_step <= 12)
-    {
         switch_color = brick_type == EBT_cyan;
-    }
     else
-    {
         switch_color = brick_type == EBT_light_red;
-    }
+
     F_set_brick_letter_color(switch_color, front_pen, front_brush, back_pen, back_brush);
 
     if (rotation_step == 4 || rotation_step == 12)
@@ -255,11 +252,11 @@ void F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_type, E_lette
             {
                 SelectObject(hdc, pen_white_fat);
                 Ellipse(hdc, 0 + 5 * G_global_scale, (-5 * G_global_scale) / 2, 0 + 10 * G_global_scale, (5 * G_global_scale) / 2);
-            }
-        }
+            }// endif
+        }// endif
 
         SetWorldTransform(hdc, &old_xform);
-    }
+    }// endif
 }// void F_draw_brick_letter
 
 
@@ -386,14 +383,6 @@ void F_draw_frame(HDC hdc, RECT & paint_area)
     if (IntersectRect(&intersection_rect, &paint_area, &G_platform_rect) )
         F_draw_platform(hdc, G_x_pos_platform, G_y_pos_platform);
 
-    //int i;
-
-    //for (i = 0; i < 16; i++)
-    //{
-    //    F_draw_brick_letter(hdc, 100, 20 + i * G_cell_width * G_global_scale / 2, EBT_cyan, ELT_o, i);
-    //    F_draw_brick_letter(hdc, 150, 20 + i * G_cell_width * G_global_scale / 2, EBT_light_red, ELT_o, i);
-    //}
-
     if (IntersectRect(&intersection_rect, &paint_area, &G_ball_rect) )
         F_draw_ball(hdc, paint_area);
 
@@ -426,9 +415,36 @@ int F_on_key_down(E_key_type key_type)
 
     case EKT_space:
         break;
-    }
+    }// end switch
     return 0;
 }// int F_on_key_down
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void F_check_level_brick_hit(int & next_y_pos)
+{
+    // Отражение шарика от кирпичей
+    int i, j;
+    int brick_y_pos = G_level_y_offset + G_level_height * G_cell_height;
+
+    for (i = G_level_height - 1; i >= 0; i--)
+    {
+        for (j = 0; j < G_level_width; j++)
+        {
+            if (level_01[i][j] == 0)
+                continue;
+
+            if (next_y_pos < brick_y_pos)
+            {
+                next_y_pos = brick_y_pos - (next_y_pos - brick_y_pos);
+                G_ball_direction = -G_ball_direction;
+            }// endif
+        }// end for
+        brick_y_pos -= G_cell_height;
+    }// end for
+}// int F_check_level_brick_hit
 
 
 
@@ -448,30 +464,30 @@ void F_move_ball()
     // Отражение шарика от левой рамки
     if (next_x_pos < G_border_x_offset)
     {
-        next_x_pos = G_level_x_offset - (next_x_pos - G_level_x_offset);
+        next_x_pos = G_border_x_offset - (next_x_pos - G_border_x_offset);
         G_ball_direction = M_PI - G_ball_direction;
-    }
+    }// endif
 
     // Отражение шарика от верхней рамки
     if (next_y_pos < G_border_y_offset)
     {
-        next_y_pos = G_level_y_offset  - (next_y_pos - G_level_y_offset);
+        next_y_pos = G_border_y_offset - (next_y_pos - G_border_y_offset);
         G_ball_direction = -G_ball_direction;
-    }
+    }// endif
 
     // Отражение шарика от правой рамки
     if (next_x_pos > max_x_pos)
     {
         next_x_pos = max_x_pos - (next_x_pos - max_x_pos);
         G_ball_direction = M_PI - G_ball_direction;
-    }
+    }// endif
 
     // Отражение шарика от нижней рамки
     if (next_y_pos > G_max_y_pos)
     {
         next_y_pos = G_max_y_pos - (next_y_pos - G_max_y_pos);
         G_ball_direction = M_PI + (M_PI - G_ball_direction);
-    }
+    }// endif
 
     // Отражение шарика от платформы
     if (next_y_pos > y_pos_platform)
@@ -480,11 +496,10 @@ void F_move_ball()
         {
             next_y_pos = y_pos_platform - (next_y_pos - y_pos_platform);
             G_ball_direction = M_PI + (M_PI - G_ball_direction);
-        }
-    }
+        }// endif
+    }// endif
 
-    // Отражение шарика от кирпичей
-    //.....//
+    F_check_level_brick_hit(next_y_pos);
 
     G_ball_x_pos = next_x_pos;
     G_ball_y_pos = next_y_pos;
