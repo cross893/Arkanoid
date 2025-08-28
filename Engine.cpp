@@ -1,57 +1,6 @@
 #include "Engine.h"
 
-#define _USE_MATH_DEFINES
-#include <math.h>
-
-enum E_letter_type
-{
-    ELT_none,
-    ELT_o
-};
-
-enum E_brick_type
-{// Создане перечисления для типа кирпичей
-    EBT_none,
-    EBT_light_red,
-    EBT_cyan
-};
-
-HWND        G_hwnd;
-HPEN        pen_white_fat, pen_bg, pen_white, pen_black, pen_light_red, pen_cyan, pen_dark_red, pen_blue;
-HBRUSH      brush_bg, brush_white, brush_black, brush_light_red, brush_cyan, brush_dark_red, brush_blue;
-
-const int   G_global_scale =    3;
-const int   G_brick_width =     15;
-const int   G_brick_height =    7;
-const int   G_cell_width =      16;
-const int   G_cell_height =     8;
-const int   G_level_x_offset =  8;
-const int   G_level_y_offset =  6;
-const int   G_level_width =     12;
-const int   G_level_height =    14;
-const int   G_circle_size =     7;
-const int   G_y_pos_platform =  185;
-const int   G_platform_height = 7;
-const int   G_ball_size =       4;
-const int   G_max_x_pos =       G_level_x_offset + G_cell_width * G_level_width;
-const int   G_max_y_pos =       199 - G_ball_size;
-const int   G_border_x_offset = 6;
-const int   G_border_y_offset = 4;
-
-int         G_inner_width =     21;
-int         G_x_pos_platform = G_border_x_offset;
-int         G_x_step_platform = G_global_scale * 2;
-int         G_platform_width =  28;
-int         G_ball_x_pos =      20;
-int         G_ball_y_pos =      170;
-double      G_ball_speed =      3.0, G_ball_direction = M_PI - M_PI_4;
-
-RECT        G_platform_rect, G_prev_platform_rect;
-RECT        G_level_rect;
-RECT        G_ball_rect;
-RECT        G_prev_ball_rect;
-
-char level_01[G_level_height][G_level_width] =
+char level_01[C_engine::level_height][C_engine::level_width] =
 {// Создание первого уровня
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -70,7 +19,101 @@ char level_01[G_level_height][G_level_width] =
 };// char level_01
 
 //------------------------------------------------------------------------------------------------------------
-void F_create_pen_brush(unsigned char r, unsigned char g, unsigned char b, HPEN &pen, HBRUSH &brush)
+C_engine::C_engine()
+: inner_width(21), x_pos_platform(border_x_offset), x_step_platform(global_scale * 2), platform_width(28), ball_x_pos(20), ball_y_pos(170), ball_speed(3.0), ball_direction(M_PI - M_PI_4)
+{
+
+}
+
+//------------------------------------------------------------------------------------------------------------
+void C_engine::F_init_engine(HWND init_hwnd)
+{// Настройка игры при старте
+    hwnd = init_hwnd;
+    pen_white_fat = CreatePen(PS_SOLID, global_scale, RGB(255, 255, 255));
+    F_create_pen_brush(15, 63, 31, pen_bg, brush_bg);
+    F_create_pen_brush(255, 255, 255, pen_white, brush_white);
+    F_create_pen_brush(0, 0, 0, pen_black, brush_black);
+    F_create_pen_brush(255, 85, 85, pen_light_red, brush_light_red);
+    F_create_pen_brush(85, 255, 255, pen_cyan, brush_cyan);
+    F_create_pen_brush(151, 0, 0, pen_dark_red, brush_dark_red);
+    F_create_pen_brush(0, 128, 192, pen_blue, brush_blue);
+
+    level_rect.left = level_x_offset * global_scale;
+    level_rect.top = level_y_offset * global_scale;
+    level_rect.right = level_rect.left + cell_width * level_width * global_scale;
+    level_rect.bottom = level_rect.top + cell_height * level_height * global_scale;
+
+    F_redraw_platform();
+
+    SetTimer(hwnd, timer_id, 50, 0);
+}// void F_init
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void C_engine::F_draw_frame(HDC hdc, RECT& paint_area)
+{// Отрисовка игрового поля
+    RECT intersection_rect;
+
+    if (IntersectRect(&intersection_rect, &paint_area, &level_rect))
+        F_draw_level(hdc);
+
+    if (IntersectRect(&intersection_rect, &paint_area, &platform_rect))
+        F_draw_platform(hdc, x_pos_platform, y_pos_platform);
+
+    if (IntersectRect(&intersection_rect, &paint_area, &ball_rect))
+        F_draw_ball(hdc, paint_area);
+
+    F_draw_bounds(hdc, paint_area);
+}// void F_draw_frame
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+int C_engine::F_on_key_down(E_key_type key_type)
+{// Функция нажатия клавиш
+    switch (key_type)
+    {
+    case EKT_left:
+        x_pos_platform -= x_step_platform;
+        if (x_pos_platform <= border_x_offset)
+            x_pos_platform = border_x_offset;
+        F_redraw_platform();
+        break;
+
+
+    case EKT_right:
+        x_pos_platform += x_step_platform;
+        if (x_pos_platform >= max_x_pos - platform_width + 1)
+            x_pos_platform = max_x_pos - platform_width + 1;
+        F_redraw_platform();
+        break;
+
+
+    case EKT_space:
+        break;
+    }// end switch
+    return 0;
+}// int F_on_key_down
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+int C_engine::F_on_timer()
+{
+    F_move_ball();
+
+    return 0;
+}// int F_on_timer
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void C_engine::F_create_pen_brush(unsigned char r, unsigned char g, unsigned char b, HPEN &pen, HBRUSH &brush)
 {// Создание пера и кисти
     pen = CreatePen(PS_SOLID, 0, RGB(r, g, b));
     brush = CreateSolidBrush(RGB(r, g, b));
@@ -80,50 +123,24 @@ void F_create_pen_brush(unsigned char r, unsigned char g, unsigned char b, HPEN 
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_redraw_platform()
+void C_engine::F_redraw_platform()
 {
-    G_prev_platform_rect =      G_platform_rect;
+    prev_platform_rect =      platform_rect;
 
-    G_platform_rect.left =      G_x_pos_platform * G_global_scale;
-    G_platform_rect.top =       G_y_pos_platform * G_global_scale;
-    G_platform_rect.right =     G_platform_rect.left + G_platform_width * G_global_scale;
-    G_platform_rect.bottom =    G_platform_rect.top + G_platform_height * G_global_scale;
+    platform_rect.left =      x_pos_platform * global_scale;
+    platform_rect.top =       y_pos_platform * global_scale;
+    platform_rect.right =     platform_rect.left + platform_width * global_scale;
+    platform_rect.bottom =    platform_rect.top + platform_height * global_scale;
 
-    InvalidateRect(G_hwnd, &G_prev_platform_rect, FALSE);
-    InvalidateRect(G_hwnd, &G_platform_rect, FALSE);
+    InvalidateRect(hwnd, &prev_platform_rect, FALSE);
+    InvalidateRect(hwnd, &platform_rect, FALSE);
 }// void F_redraw_platform
 
 
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_init_engine(HWND hwnd)
-{// Настройка игры при старте
-    G_hwnd = hwnd;
-    pen_white_fat = CreatePen(PS_SOLID, G_global_scale, RGB(255, 255, 255));
-    F_create_pen_brush(  15,  63,  31,  pen_bg,         brush_bg);
-    F_create_pen_brush( 255, 255, 255,  pen_white,      brush_white);
-    F_create_pen_brush(   0,   0,   0,  pen_black,      brush_black);
-    F_create_pen_brush( 255,  85,  85,  pen_light_red,  brush_light_red);
-    F_create_pen_brush(  85, 255, 255,  pen_cyan,       brush_cyan);
-    F_create_pen_brush( 151,   0,   0,  pen_dark_red,   brush_dark_red);
-    F_create_pen_brush(   0, 128, 192,  pen_blue,       brush_blue);
-
-    G_level_rect.left =     G_level_x_offset * G_global_scale;
-    G_level_rect.top =      G_level_y_offset * G_global_scale;
-    G_level_rect.right =    G_level_rect.left + G_cell_width * G_level_width * G_global_scale;
-    G_level_rect.bottom =   G_level_rect.top + G_cell_height * G_level_height * G_global_scale;
-
-    F_redraw_platform();
-
-    SetTimer(G_hwnd, G_timer_id, 50, 0);
-}// void F_init
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void F_draw_brick(HDC hdc, int x, int y, E_brick_type brick_type)
+void C_engine::F_draw_brick(HDC hdc, int x, int y, E_brick_type brick_type)
 {// Отрисовка кирпича
     HPEN pen;
     HBRUSH brush;
@@ -153,14 +170,14 @@ void F_draw_brick(HDC hdc, int x, int y, E_brick_type brick_type)
     SelectObject(hdc, pen);
     SelectObject(hdc, brush);
 
-    RoundRect(hdc, x * G_global_scale, y * G_global_scale, (x + G_brick_width) * G_global_scale, (y + G_brick_height) * G_global_scale, 2 * G_global_scale, 2 * G_global_scale);
+    RoundRect(hdc, x * global_scale, y * global_scale, (x + brick_width) * global_scale, (y + brick_height) * global_scale, 2 * global_scale, 2 * global_scale);
 }// void F_draw_brick
 
 
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_set_brick_letter_color(bool is_switch_color, HPEN &front_pen, HBRUSH &front_brush, HPEN &back_pen, HBRUSH &back_brush)
+void C_engine::F_set_brick_letter_color(bool is_switch_color, HPEN &front_pen, HBRUSH &front_brush, HPEN &back_pen, HBRUSH &back_brush)
 {
     if (is_switch_color)
     {
@@ -184,12 +201,12 @@ void F_set_brick_letter_color(bool is_switch_color, HPEN &front_pen, HBRUSH &fro
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_type, E_letter_type letter_type, int rotation_step)
+void C_engine::F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_type, E_letter_type letter_type, int rotation_step)
 {// Отрисовка падающей буквы
     bool    switch_color;
     double  offset;
     double  rotation_angle;
-    int     brick_half_height = G_brick_height * G_global_scale / 2;
+    int     brick_half_height = brick_height * global_scale / 2;
     int     back_part_offset;
     HPEN    front_pen, back_pen;
     HBRUSH  front_brush, back_brush;
@@ -216,11 +233,11 @@ void F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_type, E_lette
     {
         SelectObject(hdc, back_pen);
         SelectObject(hdc, back_brush);
-        Rectangle(hdc, x, y + brick_half_height - G_global_scale,  x + G_brick_width * G_global_scale, y + brick_half_height);
+        Rectangle(hdc, x, y + brick_half_height - global_scale,  x + brick_width * global_scale, y + brick_half_height);
 
         SelectObject(hdc, front_pen);
         SelectObject(hdc, front_brush);
-        Rectangle(hdc, x, y + brick_half_height, x + G_brick_width * G_global_scale, y + brick_half_height + G_global_scale - 1);
+        Rectangle(hdc, x, y + brick_half_height, x + brick_width * global_scale, y + brick_half_height + global_scale - 1);
     }
     else
     {
@@ -235,23 +252,23 @@ void F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_type, E_lette
         GetWorldTransform(hdc, &old_xform);
         SetWorldTransform(hdc, &xform);
 
-        offset = 3.0 * (1.0 - fabs(xform.eM22)) * (double)G_global_scale;
+        offset = 3.0 * (1.0 - fabs(xform.eM22)) * (double)global_scale;
         back_part_offset = (int)round(offset);
 
         SelectObject(hdc, back_pen);
         SelectObject(hdc, back_brush);
-        Rectangle(hdc, 0, -brick_half_height - back_part_offset, G_brick_width * G_global_scale, brick_half_height - back_part_offset);
+        Rectangle(hdc, 0, -brick_half_height - back_part_offset, brick_width * global_scale, brick_half_height - back_part_offset);
 
         SelectObject(hdc, front_pen);
         SelectObject(hdc, front_brush);
-        Rectangle(hdc, 0, -brick_half_height, G_brick_width * G_global_scale, brick_half_height);
+        Rectangle(hdc, 0, -brick_half_height, brick_width * global_scale, brick_half_height);
 
         if (rotation_step > 4 && rotation_step <= 12)
         {
             if (letter_type == ELT_o)
             {
                 SelectObject(hdc, pen_white_fat);
-                Ellipse(hdc, 0 + 5 * G_global_scale, (-5 * G_global_scale) / 2, 0 + 10 * G_global_scale, (5 * G_global_scale) / 2);
+                Ellipse(hdc, 0 + 5 * global_scale, (-5 * global_scale) / 2, 0 + 10 * global_scale, (5 * global_scale) / 2);
             }// endif
         }// endif
 
@@ -263,96 +280,96 @@ void F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_type, E_lette
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_draw_level(HDC hdc)
+void C_engine::F_draw_level(HDC hdc)
 {// Отрисовка уровня
     int i;
     int j;
 
-    for (i = 0; i < G_level_height; i++)
-        for (j = 0; j < G_level_width; j++)
-            F_draw_brick(hdc, G_level_x_offset + j * G_cell_width, G_level_y_offset + i * G_cell_height, (E_brick_type)level_01[i][j]);
+    for (i = 0; i < level_height; i++)
+        for (j = 0; j < level_width; j++)
+            F_draw_brick(hdc, level_x_offset + j * cell_width, level_y_offset + i * cell_height, (E_brick_type)level_01[i][j]);
 }// void F_draw_level
 
 
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_draw_platform(HDC hdc, int x, int y)
+void C_engine::F_draw_platform(HDC hdc, int x, int y)
 {// Отрисовка платформы
 
     SelectObject(hdc, pen_bg);
     SelectObject(hdc, brush_bg);
-    Rectangle(hdc, G_prev_platform_rect.left, G_prev_platform_rect.top, G_prev_platform_rect.right, G_prev_platform_rect.bottom);
+    Rectangle(hdc, prev_platform_rect.left, prev_platform_rect.top, prev_platform_rect.right, prev_platform_rect.bottom);
 
     // Рисуем боковые шарики
     SelectObject(hdc, pen_dark_red);
     SelectObject(hdc, brush_dark_red);
-    Ellipse(hdc, x * G_global_scale, y * G_global_scale, (x + G_circle_size) * G_global_scale, (y + G_circle_size) * G_global_scale);
-    Ellipse(hdc, (x + G_inner_width) * G_global_scale, y * G_global_scale, (x + G_inner_width + G_circle_size) * G_global_scale, (y + G_circle_size) * G_global_scale);
+    Ellipse(hdc, x * global_scale, y * global_scale, (x + circle_size) * global_scale, (y + circle_size) * global_scale);
+    Ellipse(hdc, (x + inner_width) * global_scale, y * global_scale, (x + inner_width + circle_size) * global_scale, (y + circle_size) * global_scale);
 
     // Рисуем блик
     SelectObject(hdc, pen_white);
-    Arc(hdc, (x + 1) * G_global_scale, (y + 1) * G_global_scale, (x + G_circle_size - 1) * G_global_scale, (y + G_circle_size - 1) * G_global_scale,
-        (x + 1 + 1) * G_global_scale, (y + 1) * G_global_scale, (x + 1) * G_global_scale, (y + 1 + 2) * G_global_scale);
+    Arc(hdc, (x + 1) * global_scale, (y + 1) * global_scale, (x + circle_size - 1) * global_scale, (y + circle_size - 1) * global_scale,
+        (x + 1 + 1) * global_scale, (y + 1) * global_scale, (x + 1) * global_scale, (y + 1 + 2) * global_scale);
 
     // Рисуем средную часть
     SelectObject(hdc, pen_blue);
     SelectObject(hdc, brush_blue);
-    RoundRect(hdc, (x + 4) * G_global_scale, (y + 1) * G_global_scale, (x + 4 + G_inner_width - 1) * G_global_scale, (y + 1 + 5) * G_global_scale,
-        3 * G_global_scale, 3 * G_global_scale);
+    RoundRect(hdc, (x + 4) * global_scale, (y + 1) * global_scale, (x + 4 + inner_width - 1) * global_scale, (y + 1 + 5) * global_scale,
+        3 * global_scale, 3 * global_scale);
 }// void F_draw_platform
 
 
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_draw_ball(HDC hdc, RECT& paint_area)
+void C_engine::F_draw_ball(HDC hdc, RECT& paint_area)
 {
     SelectObject(hdc, pen_bg);
     SelectObject(hdc, brush_bg);
-    Ellipse(hdc, G_prev_ball_rect.left, G_prev_ball_rect.top, G_prev_ball_rect.right, G_prev_ball_rect.bottom);
+    Ellipse(hdc, prev_ball_rect.left, prev_ball_rect.top, prev_ball_rect.right, prev_ball_rect.bottom);
 
     SelectObject(hdc, pen_white);
     SelectObject(hdc, brush_white);
-    Ellipse(hdc, G_ball_rect.left, G_ball_rect.top, G_ball_rect.right, G_ball_rect.bottom);
+    Ellipse(hdc, ball_rect.left, ball_rect.top, ball_rect.right, ball_rect.bottom);
 }// void F_draw_ball
 
 
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_draw_border(HDC hdc, int x, int y, bool top_border)
+void C_engine::F_draw_border(HDC hdc, int x, int y, bool top_border)
 {
     // Синяя часть линии
     SelectObject(hdc, pen_cyan);
     SelectObject(hdc, brush_cyan);
     if (top_border)
-        Rectangle(hdc, x * G_global_scale, (y + 1) * G_global_scale, (x + 4) * G_global_scale, (y + 4) * G_global_scale);
+        Rectangle(hdc, x * global_scale, (y + 1) * global_scale, (x + 4) * global_scale, (y + 4) * global_scale);
     else
-        Rectangle(hdc, (x + 1) * G_global_scale, y * G_global_scale, (x + 4) * G_global_scale, (y + 4) * G_global_scale);
+        Rectangle(hdc, (x + 1) * global_scale, y * global_scale, (x + 4) * global_scale, (y + 4) * global_scale);
 
     // Белая часть линии
     SelectObject(hdc, pen_white);
     SelectObject(hdc, brush_white);
     if (top_border)
-        Rectangle(hdc, x * G_global_scale, y * G_global_scale, (x + 4) * G_global_scale, (y + 1) * G_global_scale);
+        Rectangle(hdc, x * global_scale, y * global_scale, (x + 4) * global_scale, (y + 1) * global_scale);
     else
-        Rectangle(hdc, x * G_global_scale, y * G_global_scale, (x + 1) * G_global_scale, (y + 4) * G_global_scale);
+        Rectangle(hdc, x * global_scale, y * global_scale, (x + 1) * global_scale, (y + 4) * global_scale);
 
     // Черная перфорация
     SelectObject(hdc, pen_bg);
     SelectObject(hdc, brush_bg);
     if (top_border)
-        Rectangle(hdc, (x + 2) * G_global_scale, (y + 2) * G_global_scale, (x + 3) * G_global_scale, (y + 3) * G_global_scale);
+        Rectangle(hdc, (x + 2) * global_scale, (y + 2) * global_scale, (x + 3) * global_scale, (y + 3) * global_scale);
     else
-        Rectangle(hdc, (x + 2) * G_global_scale, (y + 1) * G_global_scale, (x + 3) * G_global_scale, (y + 2) * G_global_scale);
+        Rectangle(hdc, (x + 2) * global_scale, (y + 1) * global_scale, (x + 3) * global_scale, (y + 2) * global_scale);
 }// void F_draw_border
 
 
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_draw_bounds(HDC hdc, RECT& paint_area)
+void C_engine::F_draw_bounds(HDC hdc, RECT& paint_area)
 {
     int i;
 
@@ -373,65 +390,15 @@ void F_draw_bounds(HDC hdc, RECT& paint_area)
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_draw_frame(HDC hdc, RECT & paint_area)
-{// Отрисовка игрового поля
-    RECT intersection_rect;
-
-    if (IntersectRect(&intersection_rect, &paint_area, &G_level_rect) )
-        F_draw_level(hdc);
-
-    if (IntersectRect(&intersection_rect, &paint_area, &G_platform_rect) )
-        F_draw_platform(hdc, G_x_pos_platform, G_y_pos_platform);
-
-    if (IntersectRect(&intersection_rect, &paint_area, &G_ball_rect) )
-        F_draw_ball(hdc, paint_area);
-
-    F_draw_bounds(hdc, paint_area);
-}// void F_draw_frame
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-int F_on_key_down(E_key_type key_type)
-{// Функция нажатия клавиш
-    switch (key_type)
-    {
-    case EKT_left:
-        G_x_pos_platform -= G_x_step_platform;
-        if (G_x_pos_platform <= G_border_x_offset)
-            G_x_pos_platform = G_border_x_offset;
-        F_redraw_platform();
-        break;
-
-
-    case EKT_right:
-        G_x_pos_platform += G_x_step_platform;
-        if (G_x_pos_platform >= G_max_x_pos - G_platform_width + 1)
-            G_x_pos_platform = G_max_x_pos - G_platform_width + 1;
-        F_redraw_platform();
-        break;
-
-
-    case EKT_space:
-        break;
-    }// end switch
-    return 0;
-}// int F_on_key_down
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void F_check_level_brick_hit(int & next_y_pos)
+void C_engine::F_check_level_brick_hit(int & next_y_pos)
 {
     // Отражение шарика от кирпичей
     int i, j;
-    int brick_y_pos = G_level_y_offset + G_level_height * G_cell_height;
+    int brick_y_pos = level_y_offset + level_height * cell_height;
 
-    for (i = G_level_height - 1; i >= 0; i--)
+    for (i = level_height - 1; i >= 0; i--)
     {
-        for (j = 0; j < G_level_width; j++)
+        for (j = 0; j < level_width; j++)
         {
             if (level_01[i][j] == 0)
                 continue;
@@ -439,10 +406,10 @@ void F_check_level_brick_hit(int & next_y_pos)
             if (next_y_pos < brick_y_pos)
             {
                 next_y_pos = brick_y_pos - (next_y_pos - brick_y_pos);
-                G_ball_direction = -G_ball_direction;
+                ball_direction = -ball_direction;
             }// endif
         }// end for
-        brick_y_pos -= G_cell_height;
+        brick_y_pos -= cell_height;
     }// end for
 }// int F_check_level_brick_hit
 
@@ -450,76 +417,65 @@ void F_check_level_brick_hit(int & next_y_pos)
 
 
 //------------------------------------------------------------------------------------------------------------
-void F_move_ball()
+void C_engine::F_move_ball()
 {
     int next_x_pos, next_y_pos;
-    int max_x_pos = G_max_x_pos - G_ball_size;
-    int y_pos_platform = G_y_pos_platform - G_ball_size / 2;
+    int max_x_pos_ball = max_x_pos - ball_size;
+    int y_pos_platform_ball = y_pos_platform - ball_size / 2;
 
-    G_prev_ball_rect = G_ball_rect;
+    prev_ball_rect = ball_rect;
 
-    next_x_pos = G_ball_x_pos + (int)(G_ball_speed * cos(G_ball_direction));
-    next_y_pos = G_ball_y_pos - (int)(G_ball_speed * sin(G_ball_direction));
+    next_x_pos = ball_x_pos + (int)(ball_speed * cos(ball_direction));
+    next_y_pos = ball_y_pos - (int)(ball_speed * sin(ball_direction));
 
     // Отражение шарика от левой рамки
-    if (next_x_pos < G_border_x_offset)
+    if (next_x_pos < border_x_offset)
     {
-        next_x_pos = G_border_x_offset - (next_x_pos - G_border_x_offset);
-        G_ball_direction = M_PI - G_ball_direction;
+        next_x_pos = border_x_offset - (next_x_pos - border_x_offset);
+        ball_direction = M_PI - ball_direction;
     }// endif
 
     // Отражение шарика от верхней рамки
-    if (next_y_pos < G_border_y_offset)
+    if (next_y_pos < border_y_offset)
     {
-        next_y_pos = G_border_y_offset - (next_y_pos - G_border_y_offset);
-        G_ball_direction = -G_ball_direction;
+        next_y_pos = border_y_offset - (next_y_pos - border_y_offset);
+        ball_direction = -ball_direction;
     }// endif
 
     // Отражение шарика от правой рамки
-    if (next_x_pos > max_x_pos)
+    if (next_x_pos > max_x_pos_ball)
     {
-        next_x_pos = max_x_pos - (next_x_pos - max_x_pos);
-        G_ball_direction = M_PI - G_ball_direction;
+        next_x_pos = max_x_pos_ball - (next_x_pos - max_x_pos_ball);
+        ball_direction = M_PI - ball_direction;
     }// endif
 
     // Отражение шарика от нижней рамки
-    if (next_y_pos > G_max_y_pos)
+    if (next_y_pos > max_y_pos)
     {
-        next_y_pos = G_max_y_pos - (next_y_pos - G_max_y_pos);
-        G_ball_direction = M_PI + (M_PI - G_ball_direction);
+        next_y_pos = max_y_pos - (next_y_pos - max_y_pos);
+        ball_direction = M_PI + (M_PI - ball_direction);
     }// endif
 
     // Отражение шарика от платформы
-    if (next_y_pos > y_pos_platform)
+    if (next_y_pos > y_pos_platform_ball)
     {
-        if (next_x_pos >= G_x_pos_platform && next_x_pos <= G_x_pos_platform + G_platform_width)
+        if (next_x_pos >= x_pos_platform && next_x_pos <= x_pos_platform + platform_width)
         {
-            next_y_pos = y_pos_platform - (next_y_pos - y_pos_platform);
-            G_ball_direction = M_PI + (M_PI - G_ball_direction);
+            next_y_pos = y_pos_platform_ball - (next_y_pos - y_pos_platform_ball);
+            ball_direction = M_PI + (M_PI - ball_direction);
         }// endif
     }// endif
 
     F_check_level_brick_hit(next_y_pos);
 
-    G_ball_x_pos = next_x_pos;
-    G_ball_y_pos = next_y_pos;
+    ball_x_pos = next_x_pos;
+    ball_y_pos = next_y_pos;
 
-    G_ball_rect.left =      G_ball_x_pos * G_global_scale;
-    G_ball_rect.top =       G_ball_y_pos * G_global_scale;
-    G_ball_rect.right =     G_ball_rect.left + G_ball_size * G_global_scale;
-    G_ball_rect.bottom =    G_ball_rect.top + G_ball_size * G_global_scale;
+    ball_rect.left =      ball_x_pos * global_scale;
+    ball_rect.top =       ball_y_pos * global_scale;
+    ball_rect.right =     ball_rect.left + ball_size * global_scale;
+    ball_rect.bottom =    ball_rect.top + ball_size * global_scale;
 
-    InvalidateRect(G_hwnd, &G_prev_ball_rect, FALSE);
-    InvalidateRect(G_hwnd, &G_ball_rect, FALSE);
+    InvalidateRect(hwnd, &prev_ball_rect, FALSE);
+    InvalidateRect(hwnd, &ball_rect, FALSE);
 }// void F_move_ball
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-int F_on_timer()
-{
-    F_move_ball();
-
-    return 0;
-}// int F_on_timer

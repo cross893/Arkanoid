@@ -4,6 +4,7 @@
 #define MAX_LOADSTRING 100
 
 // Global Variables:
+C_engine engine;
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
@@ -99,7 +100,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    if (hWnd == 0)
       return FALSE;
 
-   F_init_engine(hWnd);
+   engine.F_init_engine(hWnd);
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
@@ -143,7 +144,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
 
-            F_draw_frame(hdc, ps.rcPaint);
+            engine.F_draw_frame(hdc, ps.rcPaint);
 
             EndPaint(hWnd, &ps);
         }
@@ -159,22 +160,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         switch (wParam)
         {
         case VK_LEFT:
-            return F_on_key_down(EKT_left);
+            return engine.F_on_key_down(EKT_left);
 
 
         case VK_RIGHT:
-            return F_on_key_down(EKT_right);
+            return engine.F_on_key_down(EKT_right);
 
 
         case VK_SPACE:
-            return F_on_key_down(EKT_space);
+            return engine.F_on_key_down(EKT_space);
         }
         break;
 
 
     case WM_TIMER:
-        if (wParam == G_timer_id)
-            return F_on_timer();
+        if (wParam == timer_id)
+            return engine.F_on_timer();
         break;
 
 
