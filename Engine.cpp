@@ -16,14 +16,112 @@ char level_01[C_engine::level_height][C_engine::level_width] =
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};// char level_01 
+};// char level_01
+
+//------------------------------------------------------------------------------------------------------------
+C_ball::C_ball()
+: ball_x_pos(20), ball_y_pos(170), ball_speed(3.0), ball_direction(M_PI - M_PI_4)
+{
+}
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void C_ball::F_draw(HDC hdc, RECT& paint_area, C_engine *engine)
+{
+    RECT intersection_rect;
+
+    if (! IntersectRect(&intersection_rect, &paint_area, &ball_rect))
+        return;
+
+    SelectObject(hdc, engine->pen_bg);
+    SelectObject(hdc, engine->brush_bg);
+    Ellipse(hdc, prev_ball_rect.left, prev_ball_rect.top, prev_ball_rect.right, prev_ball_rect.bottom);
+
+    SelectObject(hdc, engine->pen_white);
+    SelectObject(hdc, engine->brush_white);
+    Ellipse(hdc, ball_rect.left, ball_rect.top, ball_rect.right, ball_rect.bottom);
+}// void F_draw_ball
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void C_ball::F_move(C_engine *engine)
+{
+    int next_x_pos, next_y_pos;
+    int max_x_pos_ball = C_engine::max_x_pos - ball_size;
+    int y_pos_platform_ball = C_engine::y_pos_platform - ball_size / 2;
+
+    prev_ball_rect = ball_rect;
+
+    next_x_pos = ball_x_pos + (int)(ball_speed * cos(ball_direction));
+    next_y_pos = ball_y_pos - (int)(ball_speed * sin(ball_direction));
+
+    // Отражение шарика от левой рамки
+    if (next_x_pos < C_engine::border_x_offset)
+    {
+        next_x_pos = C_engine::border_x_offset - (next_x_pos - C_engine::border_x_offset);
+        ball_direction = M_PI - ball_direction;
+    }// endif
+
+    // Отражение шарика от верхней рамки
+    if (next_y_pos < C_engine::border_y_offset)
+    {
+        next_y_pos = C_engine::border_y_offset - (next_y_pos - C_engine::border_y_offset);
+        ball_direction = -ball_direction;
+    }// endif
+
+    // Отражение шарика от правой рамки
+    if (next_x_pos > max_x_pos_ball)
+    {
+        next_x_pos = max_x_pos_ball - (next_x_pos - max_x_pos_ball);
+        ball_direction = M_PI - ball_direction;
+    }// endif
+
+    // Отражение шарика от нижней рамки
+    if (next_y_pos > C_engine::max_y_pos)
+    {
+        next_y_pos = C_engine::max_y_pos - (next_y_pos - C_engine::max_y_pos);
+        ball_direction = M_PI + (M_PI - ball_direction);
+    }// endif
+
+    // Отражение шарика от платформы
+    if (next_y_pos > y_pos_platform_ball)
+    {
+        if (next_x_pos >= engine->x_pos_platform && next_x_pos <= engine->x_pos_platform + engine->platform_width)
+        {
+            next_y_pos = y_pos_platform_ball - (next_y_pos - y_pos_platform_ball);
+            ball_direction = M_PI + (M_PI - ball_direction);
+        }// endif
+    }// endif
+
+    engine->F_check_level_brick_hit(next_y_pos);
+
+    ball_x_pos = next_x_pos;
+    ball_y_pos = next_y_pos;
+
+    ball_rect.left = ball_x_pos * C_engine::global_scale;
+    ball_rect.top = ball_y_pos * C_engine::global_scale;
+    ball_rect.right = ball_rect.left + ball_size * C_engine::global_scale;
+    ball_rect.bottom = ball_rect.top + ball_size * C_engine::global_scale;
+
+    InvalidateRect(engine->hwnd, &prev_ball_rect, FALSE);
+    InvalidateRect(engine->hwnd, &ball_rect, FALSE);
+}// void F_move_ball
+
+
+
 
 //------------------------------------------------------------------------------------------------------------
 C_engine::C_engine()
-: inner_width(21), x_pos_platform(border_x_offset), x_step_platform(global_scale * 2), platform_width(28), ball_x_pos(20), ball_y_pos(170), ball_speed(3.0), ball_direction(M_PI - M_PI_4)
+: inner_width(21), x_pos_platform(border_x_offset), x_step_platform(global_scale * 2), platform_width(28)
 {
-
 }
+
+
+
 
 //------------------------------------------------------------------------------------------------------------
 void C_engine::F_init_engine(HWND init_hwnd)
@@ -62,8 +160,7 @@ void C_engine::F_draw_frame(HDC hdc, RECT& paint_area)
     if (IntersectRect(&intersection_rect, &paint_area, &platform_rect))
         F_draw_platform(hdc, x_pos_platform, y_pos_platform);
 
-    if (IntersectRect(&intersection_rect, &paint_area, &ball_rect))
-        F_draw_ball(hdc, paint_area);
+    ball.F_draw(hdc, paint_area, this);
 
     F_draw_bounds(hdc, paint_area);
 }// void F_draw_frame
@@ -104,10 +201,37 @@ int C_engine::F_on_key_down(E_key_type key_type)
 //------------------------------------------------------------------------------------------------------------
 int C_engine::F_on_timer()
 {
-    F_move_ball();
+    ball.F_move(this);
 
     return 0;
 }// int F_on_timer
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void C_engine::F_check_level_brick_hit(int& next_y_pos)
+{
+    // Отражение шарика от кирпичей
+    int i, j;
+    int brick_y_pos = level_y_offset + level_height * cell_height;
+
+    for (i = level_height - 1; i >= 0; i--)
+    {
+        for (j = 0; j < level_width; j++)
+        {
+            if (level_01[i][j] == 0)
+                continue;
+
+            if (next_y_pos < brick_y_pos)
+            {
+                next_y_pos = brick_y_pos - (next_y_pos - brick_y_pos);
+                ball.ball_direction = -ball.ball_direction;
+            }// endif
+        }// end for
+        brick_y_pos -= cell_height;
+    }// end for
+}// int F_check_level_brick_hit
 
 
 
@@ -208,6 +332,7 @@ void C_engine::F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_typ
     double  rotation_angle;
     int     brick_half_height = brick_height * global_scale / 2;
     int     back_part_offset;
+
     HPEN    front_pen, back_pen;
     HBRUSH  front_brush, back_brush;
     XFORM   xform, old_xform;
@@ -323,21 +448,6 @@ void C_engine::F_draw_platform(HDC hdc, int x, int y)
 
 
 //------------------------------------------------------------------------------------------------------------
-void C_engine::F_draw_ball(HDC hdc, RECT& paint_area)
-{
-    SelectObject(hdc, pen_bg);
-    SelectObject(hdc, brush_bg);
-    Ellipse(hdc, prev_ball_rect.left, prev_ball_rect.top, prev_ball_rect.right, prev_ball_rect.bottom);
-
-    SelectObject(hdc, pen_white);
-    SelectObject(hdc, brush_white);
-    Ellipse(hdc, ball_rect.left, ball_rect.top, ball_rect.right, ball_rect.bottom);
-}// void F_draw_ball
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
 void C_engine::F_draw_border(HDC hdc, int x, int y, bool top_border)
 {
     // Синяя часть линии
@@ -385,97 +495,3 @@ void C_engine::F_draw_bounds(HDC hdc, RECT& paint_area)
     for (i = 0; i < 50; i++)
         F_draw_border(hdc, 3 + i * 4, 0, true);
 }// void F_draw_bounds
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void C_engine::F_check_level_brick_hit(int & next_y_pos)
-{
-    // Отражение шарика от кирпичей
-    int i, j;
-    int brick_y_pos = level_y_offset + level_height * cell_height;
-
-    for (i = level_height - 1; i >= 0; i--)
-    {
-        for (j = 0; j < level_width; j++)
-        {
-            if (level_01[i][j] == 0)
-                continue;
-
-            if (next_y_pos < brick_y_pos)
-            {
-                next_y_pos = brick_y_pos - (next_y_pos - brick_y_pos);
-                ball_direction = -ball_direction;
-            }// endif
-        }// end for
-        brick_y_pos -= cell_height;
-    }// end for
-}// int F_check_level_brick_hit
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void C_engine::F_move_ball()
-{
-    int next_x_pos, next_y_pos;
-    int max_x_pos_ball = max_x_pos - ball_size;
-    int y_pos_platform_ball = y_pos_platform - ball_size / 2;
-
-    prev_ball_rect = ball_rect;
-
-    next_x_pos = ball_x_pos + (int)(ball_speed * cos(ball_direction));
-    next_y_pos = ball_y_pos - (int)(ball_speed * sin(ball_direction));
-
-    // Отражение шарика от левой рамки
-    if (next_x_pos < border_x_offset)
-    {
-        next_x_pos = border_x_offset - (next_x_pos - border_x_offset);
-        ball_direction = M_PI - ball_direction;
-    }// endif
-
-    // Отражение шарика от верхней рамки
-    if (next_y_pos < border_y_offset)
-    {
-        next_y_pos = border_y_offset - (next_y_pos - border_y_offset);
-        ball_direction = -ball_direction;
-    }// endif
-
-    // Отражение шарика от правой рамки
-    if (next_x_pos > max_x_pos_ball)
-    {
-        next_x_pos = max_x_pos_ball - (next_x_pos - max_x_pos_ball);
-        ball_direction = M_PI - ball_direction;
-    }// endif
-
-    // Отражение шарика от нижней рамки
-    if (next_y_pos > max_y_pos)
-    {
-        next_y_pos = max_y_pos - (next_y_pos - max_y_pos);
-        ball_direction = M_PI + (M_PI - ball_direction);
-    }// endif
-
-    // Отражение шарика от платформы
-    if (next_y_pos > y_pos_platform_ball)
-    {
-        if (next_x_pos >= x_pos_platform && next_x_pos <= x_pos_platform + platform_width)
-        {
-            next_y_pos = y_pos_platform_ball - (next_y_pos - y_pos_platform_ball);
-            ball_direction = M_PI + (M_PI - ball_direction);
-        }// endif
-    }// endif
-
-    F_check_level_brick_hit(next_y_pos);
-
-    ball_x_pos = next_x_pos;
-    ball_y_pos = next_y_pos;
-
-    ball_rect.left =      ball_x_pos * global_scale;
-    ball_rect.top =       ball_y_pos * global_scale;
-    ball_rect.right =     ball_rect.left + ball_size * global_scale;
-    ball_rect.bottom =    ball_rect.top + ball_size * global_scale;
-
-    InvalidateRect(hwnd, &prev_ball_rect, FALSE);
-    InvalidateRect(hwnd, &ball_rect, FALSE);
-}// void F_move_ball
