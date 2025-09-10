@@ -21,7 +21,7 @@ char level_01[C_level::level_height][C_level::level_width] =
 // C_ball
 //------------------------------------------------------------------------------------------------------------
 C_ball::C_ball()
-: ball_x_pos(20), ball_y_pos(170), ball_speed(3.0), ball_direction(M_PI - M_PI_4)
+: ball_x_pos(20), ball_y_pos(170), ball_speed(2.0), ball_direction(M_PI - M_PI_4)
 {
 }
 
@@ -49,11 +49,11 @@ void C_ball::F_draw(HDC hdc, RECT& paint_area, C_engine *engine)
 
 
 //------------------------------------------------------------------------------------------------------------
-void C_ball::F_move(C_engine *engine, C_level *level)
+void C_ball::F_move(C_engine *engine, C_level *level, C_platform *platform)
 {
     int next_x_pos, next_y_pos;
     int max_x_pos_ball = C_engine::max_x_pos - ball_size;
-    int y_pos_platform_ball = C_engine::y_pos_platform - ball_size / 2;
+    int y_pos_platform_ball = C_platform::y_pos_platform - ball_size;
 
     prev_ball_rect = ball_rect;
 
@@ -91,7 +91,7 @@ void C_ball::F_move(C_engine *engine, C_level *level)
     // Отражение шарика от платформы
     if (next_y_pos > y_pos_platform_ball)
     {
-        if (next_x_pos >= engine->x_pos_platform && next_x_pos <= engine->x_pos_platform + engine->platform_width)
+        if (next_x_pos >= platform->x_pos_platform && next_x_pos <= platform->x_pos_platform + platform->platform_width)
         {
             next_y_pos = y_pos_platform_ball - (next_y_pos - y_pos_platform_ball);
             ball_direction = M_PI + (M_PI - ball_direction);
@@ -116,6 +116,22 @@ void C_ball::F_move(C_engine *engine, C_level *level)
 
 
 // C_level
+//------------------------------------------------------------------------------------------------------------
+void C_level::F_init()
+{
+    C_engine::F_create_pen_brush(255, 85, 85, pen_light_red, brush_light_red);
+    C_engine::F_create_pen_brush(85, 255, 255, pen_cyan, brush_cyan);
+
+    level_rect.left = C_level::level_x_offset * C_engine::global_scale;
+    level_rect.top = C_level::level_y_offset * C_engine::global_scale;
+    level_rect.right = level_rect.left + C_level::cell_width * C_level::level_width * C_engine::global_scale;
+    level_rect.bottom = level_rect.top + C_level::cell_height * C_level::level_height * C_engine::global_scale;
+
+}// void C_level::F_init
+
+
+
+
 //------------------------------------------------------------------------------------------------------------
 void C_level::F_check_level_brick_hit(int& next_y_pos, double &ball_direction)
 {
@@ -303,10 +319,81 @@ void C_level::F_draw(HDC hdc, RECT& paint_area)
 
 
 
+// C_platform
+//------------------------------------------------------------------------------------------------------------
+C_platform::C_platform()
+: inner_width(21), x_pos_platform(C_engine::border_x_offset), x_step_platform(C_engine::global_scale * 2), platform_width(28)
+{
+}
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void C_platform::F_init()
+{
+
+}// void C_platform::F_init
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void C_platform::F_redraw_platform(C_engine* engine)
+{
+    prev_platform_rect = platform_rect;
+
+    platform_rect.left = x_pos_platform * C_engine::global_scale;
+    platform_rect.top = y_pos_platform * C_engine::global_scale;
+    platform_rect.right = platform_rect.left + platform_width * C_engine::global_scale;
+    platform_rect.bottom = platform_rect.top + platform_height * C_engine::global_scale;
+
+    InvalidateRect(engine->hwnd, &prev_platform_rect, FALSE);
+    InvalidateRect(engine->hwnd, &platform_rect, FALSE);
+}// void F_redraw_platform
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void C_platform::F_draw_platform(HDC hdc, C_engine *engine, RECT &paint_area)
+{// Отрисовка платформы
+    int x = x_pos_platform;
+    int y = y_pos_platform;
+
+    RECT intersection_rect;
+
+    if (! IntersectRect(&intersection_rect, &paint_area, &platform_rect))
+        return;
+
+    SelectObject(hdc, engine->pen_bg);
+    SelectObject(hdc, engine->brush_bg);
+    Rectangle(hdc, prev_platform_rect.left, prev_platform_rect.top, prev_platform_rect.right, prev_platform_rect.bottom);
+
+    // Рисуем боковые шарики
+    SelectObject(hdc, engine->pen_dark_red);
+    SelectObject(hdc, engine->brush_dark_red);
+    Ellipse(hdc, x * C_engine::global_scale, y * C_engine::global_scale, (x + C_engine::circle_size) * C_engine::global_scale, (y + C_engine::circle_size) * C_engine::global_scale);
+    Ellipse(hdc, (x + inner_width) * C_engine::global_scale, y * C_engine::global_scale, (x + inner_width + C_engine::circle_size) * C_engine::global_scale, (y + C_engine::circle_size) * C_engine::global_scale);
+
+    // Рисуем блик
+    SelectObject(hdc, engine->pen_white);
+    Arc(hdc, (x + 1) * C_engine::global_scale, (y + 1) * C_engine::global_scale, (x + C_engine::circle_size - 1) * C_engine::global_scale, (y + C_engine::circle_size - 1) * C_engine::global_scale,
+        (x + 1 + 1) * C_engine::global_scale, (y + 1) * C_engine::global_scale, (x + 1) * C_engine::global_scale, (y + 1 + 2) * C_engine::global_scale);
+
+    // Рисуем средную часть
+    SelectObject(hdc, engine->pen_blue);
+    SelectObject(hdc, engine->brush_blue);
+    RoundRect(hdc, (x + 4) * C_engine::global_scale, (y + 1) * C_engine::global_scale, (x + 4 + inner_width - 1) * C_engine::global_scale, (y + 1 + 5) * C_engine::global_scale,
+        3 * C_engine::global_scale, 3 * C_engine::global_scale);
+}// void F_draw_platform
+
+
+
+
 // C_engine
 //------------------------------------------------------------------------------------------------------------
 C_engine::C_engine()
-: inner_width(21), x_pos_platform(border_x_offset), x_step_platform(global_scale * 2), platform_width(28)
 {
 }
 
@@ -317,25 +404,21 @@ C_engine::C_engine()
 void C_engine::F_init_engine(HWND init_hwnd)
 {// Настройка игры при старте
     hwnd = init_hwnd;
-    pen_white_fat = CreatePen(PS_SOLID, global_scale, RGB(255, 255, 255)); //?
+    pen_white_fat = CreatePen(PS_SOLID, global_scale, RGB(255, 255, 255));
     F_create_pen_brush(15, 63, 31, pen_bg, brush_bg);
     F_create_pen_brush(255, 255, 255, pen_white, brush_white);
     F_create_pen_brush(0, 0, 0, pen_black, brush_black);
-    F_create_pen_brush(255, 85, 85, pen_light_red, brush_light_red); //?
-    F_create_pen_brush(85, 255, 255, pen_cyan, brush_cyan); //?
-    F_create_pen_brush(255, 85, 85, level.pen_light_red, level.brush_light_red); //?
-    F_create_pen_brush(85, 255, 255, level.pen_cyan, level.brush_cyan); //?
+    F_create_pen_brush(255, 85, 85, pen_light_red, brush_light_red);
+    F_create_pen_brush(85, 255, 255, pen_cyan, brush_cyan);
     F_create_pen_brush(151, 0, 0, pen_dark_red, brush_dark_red);
     F_create_pen_brush(0, 128, 192, pen_blue, brush_blue);
 
-    level.level_rect.left = C_level::level_x_offset * global_scale;
-    level.level_rect.top = C_level::level_y_offset * global_scale;
-    level.level_rect.right = level.level_rect.left + C_level::cell_width * C_level::level_width * global_scale;
-    level.level_rect.bottom = level.level_rect.top + C_level::cell_height * C_level::level_height * global_scale;
+    level.F_init();
+    platform.F_init();
+    
+    platform.F_redraw_platform(this);
 
-    F_redraw_platform();
-
-    SetTimer(hwnd, timer_id, 50, 0);
+    SetTimer(hwnd, timer_id, 25, 0);
 }// void F_init
 
 
@@ -344,12 +427,9 @@ void C_engine::F_init_engine(HWND init_hwnd)
 //------------------------------------------------------------------------------------------------------------
 void C_engine::F_draw_frame(HDC hdc, RECT &paint_area)
 {// Отрисовка игрового поля
-    RECT intersection_rect;
-
     level.F_draw(hdc, paint_area);
 
-    if (IntersectRect(&intersection_rect, &paint_area, &platform_rect))
-        F_draw_platform(hdc, x_pos_platform, y_pos_platform);
+    platform.F_draw_platform(hdc, this, paint_area);
 
     ball.F_draw(hdc, paint_area, this);
 
@@ -365,18 +445,18 @@ int C_engine::F_on_key_down(E_key_type key_type)
     switch (key_type)
     {
     case EKT_left:
-        x_pos_platform -= x_step_platform;
-        if (x_pos_platform <= border_x_offset)
-            x_pos_platform = border_x_offset;
-        F_redraw_platform();
+        platform.x_pos_platform -= platform.x_step_platform;
+        if (platform.x_pos_platform <= border_x_offset)
+            platform.x_pos_platform = border_x_offset;
+        platform.F_redraw_platform(this);
         break;
 
 
     case EKT_right:
-        x_pos_platform += x_step_platform;
-        if (x_pos_platform >= max_x_pos - platform_width + 1)
-            x_pos_platform = max_x_pos - platform_width + 1;
-        F_redraw_platform();
+        platform.x_pos_platform += platform.x_step_platform;
+        if (platform.x_pos_platform >= max_x_pos - platform.platform_width + 1)
+            platform.x_pos_platform = max_x_pos - platform.platform_width + 1;
+        platform.F_redraw_platform(this);
         break;
 
 
@@ -392,7 +472,7 @@ int C_engine::F_on_key_down(E_key_type key_type)
 //------------------------------------------------------------------------------------------------------------
 int C_engine::F_on_timer()
 {
-    ball.F_move(this, &level);
+    ball.F_move(this, &level, &platform);
 
     return 0;
 }// int F_on_timer
@@ -406,52 +486,6 @@ void C_engine::F_create_pen_brush(unsigned char r, unsigned char g, unsigned cha
     pen = CreatePen(PS_SOLID, 0, RGB(r, g, b));
     brush = CreateSolidBrush(RGB(r, g, b));
 }// void F_create_pen_brush
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void C_engine::F_redraw_platform()
-{
-    prev_platform_rect =      platform_rect;
-
-    platform_rect.left =      x_pos_platform * global_scale;
-    platform_rect.top =       y_pos_platform * global_scale;
-    platform_rect.right =     platform_rect.left + platform_width * global_scale;
-    platform_rect.bottom =    platform_rect.top + platform_height * global_scale;
-
-    InvalidateRect(hwnd, &prev_platform_rect, FALSE);
-    InvalidateRect(hwnd, &platform_rect, FALSE);
-}// void F_redraw_platform
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void C_engine::F_draw_platform(HDC hdc, int x, int y)
-{// Отрисовка платформы
-
-    SelectObject(hdc, pen_bg);
-    SelectObject(hdc, brush_bg);
-    Rectangle(hdc, prev_platform_rect.left, prev_platform_rect.top, prev_platform_rect.right, prev_platform_rect.bottom);
-
-    // Рисуем боковые шарики
-    SelectObject(hdc, pen_dark_red);
-    SelectObject(hdc, brush_dark_red);
-    Ellipse(hdc, x * global_scale, y * global_scale, (x + circle_size) * global_scale, (y + circle_size) * global_scale);
-    Ellipse(hdc, (x + inner_width) * global_scale, y * global_scale, (x + inner_width + circle_size) * global_scale, (y + circle_size) * global_scale);
-
-    // Рисуем блик
-    SelectObject(hdc, pen_white);
-    Arc(hdc, (x + 1) * global_scale, (y + 1) * global_scale, (x + circle_size - 1) * global_scale, (y + circle_size - 1) * global_scale,
-        (x + 1 + 1) * global_scale, (y + 1) * global_scale, (x + 1) * global_scale, (y + 1 + 2) * global_scale);
-
-    // Рисуем средную часть
-    SelectObject(hdc, pen_blue);
-    SelectObject(hdc, brush_blue);
-    RoundRect(hdc, (x + 4) * global_scale, (y + 1) * global_scale, (x + 4 + inner_width - 1) * global_scale, (y + 1 + 5) * global_scale,
-        3 * global_scale, 3 * global_scale);
-}// void F_draw_platform
 
 
 
