@@ -100,7 +100,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    if (hWnd == 0)
       return FALSE;
 
-   engine.F_init_engine(hWnd);
+   engine.F_init(hWnd);
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);

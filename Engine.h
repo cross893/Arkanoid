@@ -40,17 +40,17 @@ public:
     void F_draw(HDC hdc, RECT &paint_area, C_engine *engine);
     void F_move(C_engine *engine, C_level *level, C_platform* platform);
 
-    static const int   ball_size = 4;
+    static const int   size = 4;
 
-    double      ball_direction;
+    double      direction;
 
 private:
-    int         ball_x_pos;
-    int         ball_y_pos;
-    double      ball_speed;
+    int         x_pos;
+    int         y_pos;
+    double      speed;
 
-    RECT        ball_rect;
-    RECT        prev_ball_rect;
+    RECT        rect;
+    RECT        prev_rect;
 };// end class
 
 //------------------------------------------------------------------------------------------------------------
@@ -58,13 +58,13 @@ class C_level
 {
 public:
     void F_init();
-    void F_check_level_brick_hit(int& next_y_pos, double& ball_direction);
+    void F_check_level_brick_hit(int& next_y_pos, double& direction);
     void F_draw(HDC hdc, RECT& paint_area);
 
-    static const int   level_width = 12;
-    static const int   level_height = 14;
-    static const int   level_x_offset = 8;
-    static const int   level_y_offset = 6;
+    static const int   width = 12;
+    static const int   height = 14;
+    static const int   x_offset = 8;
+    static const int   y_offset = 6;
     static const int   cell_width = 16;
     static const int   cell_height = 8;
 
@@ -79,7 +79,7 @@ private:
     HPEN pen_white_fat, pen_light_red, pen_cyan;
     HBRUSH brush_light_red, brush_cyan;
 
-    RECT level_rect;
+    RECT rect;
 };// end class
 
 //------------------------------------------------------------------------------------------------------------
@@ -89,22 +89,35 @@ public:
     C_platform();
 
     void F_init();
-    void F_redraw_platform(C_engine* engine);
-    void F_draw_platform(HDC hdc, C_engine* engine, RECT& paint_area);
+    void F_redraw(C_engine* engine);
+    void F_draw(HDC hdc, C_engine* engine, RECT& paint_area);
 
 
-    static const int y_pos_platform = 185;
+    static const int y_pos = 185;
 
-    int x_pos_platform;
-    int x_step_platform;
-    int platform_width;
+    int x_pos;
+    int x_step;
+    int width;
 
 private:
-    static const int platform_height = 7;
+    static const int height = 7;
 
     int inner_width;
 
-    RECT platform_rect, prev_platform_rect;
+    RECT rect, prev_rect;
+};// end class
+
+//------------------------------------------------------------------------------------------------------------
+class C_border
+{
+public:
+    void F_draw(HDC hdc, RECT& paint_area, C_engine *engine);
+
+    static const int x_offset = 6;
+    static const int y_offset = 4;
+
+private:
+    void F_draw_element(HDC hdc, int x, int y, bool top_border, C_engine* engine);
 };// end class
 
 //------------------------------------------------------------------------------------------------------------
@@ -113,32 +126,28 @@ class C_engine
 public:
     C_engine();
 
-    void F_init_engine(HWND hwnd);
+    void F_init(HWND hwnd);
     void F_draw_frame(HDC hdc, RECT &paint_area);
     int F_on_key_down(E_key_type key_type);
     int F_on_timer();
     static void F_create_pen_brush(unsigned char r, unsigned char g, unsigned char b, HPEN& pen, HBRUSH& brush);
 
-    static const int max_x_pos = C_level::level_x_offset + C_level::cell_width * C_level::level_width;
-    static const int max_y_pos = 199 - C_ball::ball_size;
-    static const int border_x_offset = 6;
-    static const int border_y_offset = 4;
+    static const int max_x_pos = C_level::x_offset + C_level::cell_width * C_level::width;
+    static const int max_y_pos = 199 - C_ball::size;
     static const int global_scale = 3;
     static const int circle_size = 7;
 
     HWND        hwnd;
-    HPEN        pen_bg, pen_white, pen_dark_red, pen_blue;
-    HBRUSH      brush_bg, brush_white, brush_dark_red, brush_blue;
+    HPEN        pen_bg, pen_white, pen_dark_red, pen_blue, pen_cyan;
+    HBRUSH      brush_bg, brush_white, brush_dark_red, brush_blue, brush_cyan;
 
 private:
-    void F_draw_border      (HDC hdc, int x, int y, bool top_border);
-    void F_draw_bounds      (HDC hdc, RECT &paint_area);
-
-    HPEN        pen_white_fat, pen_light_red, pen_cyan, pen_black;
-    HBRUSH      brush_light_red, brush_cyan, brush_black;
+    HPEN        pen_white_fat, pen_light_red, pen_black;
+    HBRUSH      brush_light_red, brush_black;
 
     C_ball ball;
     C_level level;
     C_platform platform;
+    C_border border;
 };// end class
 

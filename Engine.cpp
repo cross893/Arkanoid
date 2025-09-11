@@ -1,6 +1,6 @@
 #include "Engine.h"
 
-char level_01[C_level::level_height][C_level::level_width] =
+char level_01[C_level::height][C_level::width] =
 {// Создание первого уровня
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -21,7 +21,7 @@ char level_01[C_level::level_height][C_level::level_width] =
 // C_ball
 //------------------------------------------------------------------------------------------------------------
 C_ball::C_ball()
-: ball_x_pos(20), ball_y_pos(170), ball_speed(2.0), ball_direction(M_PI - M_PI_4)
+: x_pos(20), y_pos(170), speed(2.0), direction(M_PI - M_PI_4)
 {
 }
 
@@ -33,16 +33,16 @@ void C_ball::F_draw(HDC hdc, RECT& paint_area, C_engine *engine)
 {
     RECT intersection_rect;
 
-    if (! IntersectRect(&intersection_rect, &paint_area, &ball_rect))
+    if (! IntersectRect(&intersection_rect, &paint_area, &rect))
         return;
 
     SelectObject(hdc, engine->pen_bg);
     SelectObject(hdc, engine->brush_bg);
-    Ellipse(hdc, prev_ball_rect.left, prev_ball_rect.top, prev_ball_rect.right, prev_ball_rect.bottom);
+    Ellipse(hdc, prev_rect.left, prev_rect.top, prev_rect.right, prev_rect.bottom);
 
     SelectObject(hdc, engine->pen_white);
     SelectObject(hdc, engine->brush_white);
-    Ellipse(hdc, ball_rect.left, ball_rect.top, ball_rect.right, ball_rect.bottom);
+    Ellipse(hdc, rect.left, rect.top, rect.right, rect.bottom);
 }// void F_draw_ball
 
 
@@ -52,64 +52,64 @@ void C_ball::F_draw(HDC hdc, RECT& paint_area, C_engine *engine)
 void C_ball::F_move(C_engine *engine, C_level *level, C_platform *platform)
 {
     int next_x_pos, next_y_pos;
-    int max_x_pos_ball = C_engine::max_x_pos - ball_size;
-    int y_pos_platform_ball = C_platform::y_pos_platform - ball_size;
+    int max_x_pos_ball = C_engine::max_x_pos - size;
+    int y_pos_platform_ball = C_platform::y_pos - size;
 
-    prev_ball_rect = ball_rect;
+    prev_rect = rect;
 
-    next_x_pos = ball_x_pos + (int)(ball_speed * cos(ball_direction));
-    next_y_pos = ball_y_pos - (int)(ball_speed * sin(ball_direction));
+    next_x_pos = x_pos + (int)(speed * cos(direction));
+    next_y_pos = y_pos - (int)(speed * sin(direction));
 
     // Отражение шарика от левой рамки
-    if (next_x_pos < C_engine::border_x_offset)
+    if (next_x_pos < C_border::x_offset)
     {
-        next_x_pos = C_engine::border_x_offset - (next_x_pos - C_engine::border_x_offset); //?
-        ball_direction = M_PI - ball_direction;
+        next_x_pos = C_border::x_offset - (next_x_pos - C_border::x_offset); //?
+        direction = M_PI - direction;
     }// endif
 
     // Отражение шарика от верхней рамки
-    if (next_y_pos < C_engine::border_y_offset)
+    if (next_y_pos < C_border::y_offset)
     {
-        next_y_pos = C_engine::border_y_offset - (next_y_pos - C_engine::border_y_offset);
-        ball_direction = -ball_direction;
+        next_y_pos = C_border::y_offset - (next_y_pos - C_border::y_offset);
+        direction = -direction;
     }// endif
 
     // Отражение шарика от правой рамки
     if (next_x_pos > max_x_pos_ball)
     {
         next_x_pos = max_x_pos_ball - (next_x_pos - max_x_pos_ball);
-        ball_direction = M_PI - ball_direction;
+        direction = M_PI - direction;
     }// endif
 
     // Отражение шарика от нижней рамки
     if (next_y_pos > C_engine::max_y_pos)
     {
         next_y_pos = C_engine::max_y_pos - (next_y_pos - C_engine::max_y_pos);
-        ball_direction = M_PI + (M_PI - ball_direction);
+        direction = M_PI + (M_PI - direction);
     }// endif
 
     // Отражение шарика от платформы
     if (next_y_pos > y_pos_platform_ball)
     {
-        if (next_x_pos >= platform->x_pos_platform && next_x_pos <= platform->x_pos_platform + platform->platform_width)
+        if (next_x_pos >= platform->x_pos && next_x_pos <= platform->x_pos + platform->width)
         {
             next_y_pos = y_pos_platform_ball - (next_y_pos - y_pos_platform_ball);
-            ball_direction = M_PI + (M_PI - ball_direction);
+            direction = M_PI + (M_PI - direction);
         }// endif
     }// endif
 
-    level->F_check_level_brick_hit(next_y_pos, ball_direction);
+    level->F_check_level_brick_hit(next_y_pos, direction);
 
-    ball_x_pos = next_x_pos;
-    ball_y_pos = next_y_pos;
+    x_pos = next_x_pos;
+    y_pos = next_y_pos;
 
-    ball_rect.left = ball_x_pos * C_engine::global_scale;
-    ball_rect.top = ball_y_pos * C_engine::global_scale;
-    ball_rect.right = ball_rect.left + ball_size * C_engine::global_scale;
-    ball_rect.bottom = ball_rect.top + ball_size * C_engine::global_scale;
+    rect.left = x_pos * C_engine::global_scale;
+    rect.top = y_pos * C_engine::global_scale;
+    rect.right = rect.left + size * C_engine::global_scale;
+    rect.bottom = rect.top + size * C_engine::global_scale;
 
-    InvalidateRect(engine->hwnd, &prev_ball_rect, FALSE);
-    InvalidateRect(engine->hwnd, &ball_rect, FALSE);
+    InvalidateRect(engine->hwnd, &prev_rect, FALSE);
+    InvalidateRect(engine->hwnd, &rect, FALSE);
 }// void F_move_ball
 
 
@@ -122,10 +122,10 @@ void C_level::F_init()
     C_engine::F_create_pen_brush(255, 85, 85, pen_light_red, brush_light_red);
     C_engine::F_create_pen_brush(85, 255, 255, pen_cyan, brush_cyan);
 
-    level_rect.left = C_level::level_x_offset * C_engine::global_scale;
-    level_rect.top = C_level::level_y_offset * C_engine::global_scale;
-    level_rect.right = level_rect.left + C_level::cell_width * C_level::level_width * C_engine::global_scale;
-    level_rect.bottom = level_rect.top + C_level::cell_height * C_level::level_height * C_engine::global_scale;
+    rect.left = C_level::x_offset * C_engine::global_scale;
+    rect.top = C_level::y_offset * C_engine::global_scale;
+    rect.right = rect.left + C_level::cell_width * C_level::width * C_engine::global_scale;
+    rect.bottom = rect.top + C_level::cell_height * C_level::height * C_engine::global_scale;
 
 }// void C_level::F_init
 
@@ -133,15 +133,15 @@ void C_level::F_init()
 
 
 //------------------------------------------------------------------------------------------------------------
-void C_level::F_check_level_brick_hit(int& next_y_pos, double &ball_direction)
+void C_level::F_check_level_brick_hit(int& next_y_pos, double &direction)
 {
     // Отражение шарика от кирпичей
     int i, j;
-    int brick_y_pos = level_y_offset + level_height * cell_height;
+    int brick_y_pos = y_offset + height * cell_height;
 
-    for (i = level_height - 1; i >= 0; i--)
+    for (i = height - 1; i >= 0; i--)
     {
-        for (j = 0; j < level_width; j++)
+        for (j = 0; j < width; j++)
         {
             if (level_01[i][j] == 0)
                 continue;
@@ -149,7 +149,7 @@ void C_level::F_check_level_brick_hit(int& next_y_pos, double &ball_direction)
             if (next_y_pos < brick_y_pos)
             {
                 next_y_pos = brick_y_pos - (next_y_pos - brick_y_pos);
-                ball_direction = -ball_direction;
+                direction = -direction;
             }// endif
         }// end for
         brick_y_pos -= cell_height;
@@ -308,12 +308,12 @@ void C_level::F_draw(HDC hdc, RECT& paint_area)
 
     RECT intersection_rect;
     
-    if (! IntersectRect(&intersection_rect, &paint_area, &level_rect))
+    if (! IntersectRect(&intersection_rect, &paint_area, &rect))
         return;
 
-    for (i = 0; i < level_height; i++)
-        for (j = 0; j < level_width; j++)
-            F_draw_brick(hdc, level_x_offset + j * cell_width, level_y_offset + i * cell_height, (E_brick_type)level_01[i][j]);
+    for (i = 0; i < height; i++)
+        for (j = 0; j < width; j++)
+            F_draw_brick(hdc, x_offset + j * cell_width, y_offset + i * cell_height, (E_brick_type)level_01[i][j]);
 }// void F_draw_level
 
 
@@ -322,7 +322,7 @@ void C_level::F_draw(HDC hdc, RECT& paint_area)
 // C_platform
 //------------------------------------------------------------------------------------------------------------
 C_platform::C_platform()
-: inner_width(21), x_pos_platform(C_engine::border_x_offset), x_step_platform(C_engine::global_scale * 2), platform_width(28)
+: inner_width(21), x_pos(C_border::x_offset), x_step(C_engine::global_scale * 2), width(28)
 {
 }
 
@@ -339,36 +339,36 @@ void C_platform::F_init()
 
 
 //------------------------------------------------------------------------------------------------------------
-void C_platform::F_redraw_platform(C_engine* engine)
+void C_platform::F_redraw(C_engine* engine)
 {
-    prev_platform_rect = platform_rect;
+    prev_rect = rect;
 
-    platform_rect.left = x_pos_platform * C_engine::global_scale;
-    platform_rect.top = y_pos_platform * C_engine::global_scale;
-    platform_rect.right = platform_rect.left + platform_width * C_engine::global_scale;
-    platform_rect.bottom = platform_rect.top + platform_height * C_engine::global_scale;
+    rect.left = x_pos * C_engine::global_scale;
+    rect.top = y_pos * C_engine::global_scale;
+    rect.right = rect.left + width * C_engine::global_scale;
+    rect.bottom = rect.top + height * C_engine::global_scale;
 
-    InvalidateRect(engine->hwnd, &prev_platform_rect, FALSE);
-    InvalidateRect(engine->hwnd, &platform_rect, FALSE);
-}// void F_redraw_platform
+    InvalidateRect(engine->hwnd, &prev_rect, FALSE);
+    InvalidateRect(engine->hwnd, &rect, FALSE);
+}// void F_redraw
 
 
 
 
 //------------------------------------------------------------------------------------------------------------
-void C_platform::F_draw_platform(HDC hdc, C_engine *engine, RECT &paint_area)
+void C_platform::F_draw(HDC hdc, C_engine *engine, RECT &paint_area)
 {// Отрисовка платформы
-    int x = x_pos_platform;
-    int y = y_pos_platform;
+    int x = x_pos;
+    int y = y_pos;
 
     RECT intersection_rect;
 
-    if (! IntersectRect(&intersection_rect, &paint_area, &platform_rect))
+    if (! IntersectRect(&intersection_rect, &paint_area, &rect))
         return;
 
     SelectObject(hdc, engine->pen_bg);
     SelectObject(hdc, engine->brush_bg);
-    Rectangle(hdc, prev_platform_rect.left, prev_platform_rect.top, prev_platform_rect.right, prev_platform_rect.bottom);
+    Rectangle(hdc, prev_rect.left, prev_rect.top, prev_rect.right, prev_rect.bottom);
 
     // Рисуем боковые шарики
     SelectObject(hdc, engine->pen_dark_red);
@@ -386,7 +386,60 @@ void C_platform::F_draw_platform(HDC hdc, C_engine *engine, RECT &paint_area)
     SelectObject(hdc, engine->brush_blue);
     RoundRect(hdc, (x + 4) * C_engine::global_scale, (y + 1) * C_engine::global_scale, (x + 4 + inner_width - 1) * C_engine::global_scale, (y + 1 + 5) * C_engine::global_scale,
         3 * C_engine::global_scale, 3 * C_engine::global_scale);
-}// void F_draw_platform
+}// void F_draw
+
+
+
+
+// C_border
+//------------------------------------------------------------------------------------------------------------
+void C_border::F_draw_element(HDC hdc, int x, int y, bool top_border, C_engine *engine)
+{
+    // Синяя часть линии
+    SelectObject(hdc, engine->pen_cyan);
+    SelectObject(hdc, engine->brush_cyan);
+    if (top_border)
+        Rectangle(hdc, x * C_engine::global_scale, (y + 1) * C_engine::global_scale, (x + 4) * C_engine::global_scale, (y + 4) * C_engine::global_scale);
+    else
+        Rectangle(hdc, (x + 1) * C_engine::global_scale, y * C_engine::global_scale, (x + 4) * C_engine::global_scale, (y + 4) * C_engine::global_scale);
+
+    // Белая часть линии
+    SelectObject(hdc, engine->pen_white);
+    SelectObject(hdc, engine->brush_white);
+    if (top_border)
+        Rectangle(hdc, x * C_engine::global_scale, y * C_engine::global_scale, (x + 4) * C_engine::global_scale, (y + 1) * C_engine::global_scale);
+    else
+        Rectangle(hdc, x * C_engine::global_scale, y * C_engine::global_scale, (x + 1) * C_engine::global_scale, (y + 4) * C_engine::global_scale);
+
+    // Черная перфорация
+    SelectObject(hdc, engine->pen_bg);
+    SelectObject(hdc, engine->brush_bg);
+    if (top_border)
+        Rectangle(hdc, (x + 2) * C_engine::global_scale, (y + 2) * C_engine::global_scale, (x + 3) * C_engine::global_scale, (y + 3) * C_engine::global_scale);
+    else
+        Rectangle(hdc, (x + 2) * C_engine::global_scale, (y + 1) * C_engine::global_scale, (x + 3) * C_engine::global_scale, (y + 2) * C_engine::global_scale);
+}// void F_draw
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void C_border::F_draw(HDC hdc, RECT& paint_area, C_engine *engine)
+{
+    int i;
+
+    // Левая граница
+    for (i = 0; i < 50; i++)
+        F_draw_element(hdc, 2, 1 + i * 4, false, engine);
+
+    // Правая граница
+    for (i = 0; i < 50; i++)
+        F_draw_element(hdc, 201, 1 + i * 4, false, engine);
+
+    // Верхняя граница
+    for (i = 0; i < 50; i++)
+        F_draw_element(hdc, 3 + i * 4, 0, true, engine);
+}// void F_draw
 
 
 
@@ -401,7 +454,7 @@ C_engine::C_engine()
 
 
 //------------------------------------------------------------------------------------------------------------
-void C_engine::F_init_engine(HWND init_hwnd)
+void C_engine::F_init(HWND init_hwnd)
 {// Настройка игры при старте
     hwnd = init_hwnd;
     pen_white_fat = CreatePen(PS_SOLID, global_scale, RGB(255, 255, 255));
@@ -416,7 +469,7 @@ void C_engine::F_init_engine(HWND init_hwnd)
     level.F_init();
     platform.F_init();
     
-    platform.F_redraw_platform(this);
+    platform.F_redraw(this);
 
     SetTimer(hwnd, timer_id, 25, 0);
 }// void F_init
@@ -429,11 +482,11 @@ void C_engine::F_draw_frame(HDC hdc, RECT &paint_area)
 {// Отрисовка игрового поля
     level.F_draw(hdc, paint_area);
 
-    platform.F_draw_platform(hdc, this, paint_area);
+    platform.F_draw(hdc, this, paint_area);
 
     ball.F_draw(hdc, paint_area, this);
 
-    F_draw_bounds(hdc, paint_area);
+    border.F_draw(hdc, paint_area, this);
 }// void F_draw_frame
 
 
@@ -445,18 +498,18 @@ int C_engine::F_on_key_down(E_key_type key_type)
     switch (key_type)
     {
     case EKT_left:
-        platform.x_pos_platform -= platform.x_step_platform;
-        if (platform.x_pos_platform <= border_x_offset)
-            platform.x_pos_platform = border_x_offset;
-        platform.F_redraw_platform(this);
+        platform.x_pos -= platform.x_step;
+        if (platform.x_pos <= C_border::x_offset)
+            platform.x_pos = C_border::x_offset;
+        platform.F_redraw(this);
         break;
 
 
     case EKT_right:
-        platform.x_pos_platform += platform.x_step_platform;
-        if (platform.x_pos_platform >= max_x_pos - platform.platform_width + 1)
-            platform.x_pos_platform = max_x_pos - platform.platform_width + 1;
-        platform.F_redraw_platform(this);
+        platform.x_pos += platform.x_step;
+        if (platform.x_pos >= max_x_pos - platform.width + 1)
+            platform.x_pos = max_x_pos - platform.width + 1;
+        platform.F_redraw(this);
         break;
 
 
@@ -486,55 +539,3 @@ void C_engine::F_create_pen_brush(unsigned char r, unsigned char g, unsigned cha
     pen = CreatePen(PS_SOLID, 0, RGB(r, g, b));
     brush = CreateSolidBrush(RGB(r, g, b));
 }// void F_create_pen_brush
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void C_engine::F_draw_border(HDC hdc, int x, int y, bool top_border)
-{
-    // Синяя часть линии
-    SelectObject(hdc, pen_cyan);
-    SelectObject(hdc, brush_cyan);
-    if (top_border)
-        Rectangle(hdc, x * global_scale, (y + 1) * global_scale, (x + 4) * global_scale, (y + 4) * global_scale);
-    else
-        Rectangle(hdc, (x + 1) * global_scale, y * global_scale, (x + 4) * global_scale, (y + 4) * global_scale);
-
-    // Белая часть линии
-    SelectObject(hdc, pen_white);
-    SelectObject(hdc, brush_white);
-    if (top_border)
-        Rectangle(hdc, x * global_scale, y * global_scale, (x + 4) * global_scale, (y + 1) * global_scale);
-    else
-        Rectangle(hdc, x * global_scale, y * global_scale, (x + 1) * global_scale, (y + 4) * global_scale);
-
-    // Черная перфорация
-    SelectObject(hdc, pen_bg);
-    SelectObject(hdc, brush_bg);
-    if (top_border)
-        Rectangle(hdc, (x + 2) * global_scale, (y + 2) * global_scale, (x + 3) * global_scale, (y + 3) * global_scale);
-    else
-        Rectangle(hdc, (x + 2) * global_scale, (y + 1) * global_scale, (x + 3) * global_scale, (y + 2) * global_scale);
-}// void F_draw_border
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void C_engine::F_draw_bounds(HDC hdc, RECT& paint_area)
-{
-    int i;
-
-    // Левая граница
-    for (i = 0; i < 50; i++)
-        F_draw_border(hdc, 2, 1 + i * 4, false);
-
-    // Правая граница
-    for (i = 0; i < 50; i++)
-        F_draw_border(hdc, 201, 1 + i * 4, false);
-
-    // Верхняя граница
-    for (i = 0; i < 50; i++)
-        F_draw_border(hdc, 3 + i * 4, 0, true);
-}// void F_draw_bounds
