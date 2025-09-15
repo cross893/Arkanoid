@@ -214,7 +214,7 @@ void C_engine::F_draw_frame(HDC hdc, RECT &paint_area)
 
     ball.F_draw(hdc, paint_area, this);
 
-    border.F_draw(hdc, paint_area, pen_bg, brush_bg);
+    border.F_draw(hdc, paint_area, pen_bg, brush_bg, pen_cyan, brush_cyan, pen_white, brush_white);
 }// void F_draw_frame
 
 

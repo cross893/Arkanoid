@@ -3,7 +3,6 @@
 // C_border
 //------------------------------------------------------------------------------------------------------------
 C_border::C_border()
-    : pen_cyan(0), pen_white(0), brush_cyan(0), brush_white(0)
 {
 }
 
@@ -13,15 +12,13 @@ C_border::C_border()
 //------------------------------------------------------------------------------------------------------------
 void C_border::F_init()
 {
-    C_config::F_create_pen_brush(85, 255, 255, pen_cyan, brush_cyan);
-    C_config::F_create_pen_brush(255, 255, 255, pen_white, brush_white);
 }// void C_border::F_init
 
 
 
 
 //------------------------------------------------------------------------------------------------------------
-void C_border::F_draw_element(HDC hdc, int x, int y, bool top_border, HPEN pen_bg, HBRUSH brush_bg)
+void C_border::F_draw_element(HDC hdc, int x, int y, bool top_border, HPEN pen_bg, HBRUSH brush_bg, HPEN pen_cyan, HBRUSH brush_cyan, HPEN pen_white, HBRUSH brush_white)
 {
     // Синяя часть линии
     SelectObject(hdc, pen_cyan);
@@ -52,19 +49,19 @@ void C_border::F_draw_element(HDC hdc, int x, int y, bool top_border, HPEN pen_b
 
 
 //------------------------------------------------------------------------------------------------------------
-void C_border::F_draw(HDC hdc, RECT& paint_area, HPEN pen_bg, HBRUSH brush_bg)
+void C_border::F_draw(HDC hdc, RECT& paint_area, HPEN pen_bg, HBRUSH brush_bg, HPEN pen_cyan, HBRUSH brush_cyan, HPEN pen_white, HBRUSH brush_white)
 {
     int i;
 
     // Левая граница
     for (i = 0; i < 50; i++)
-        F_draw_element(hdc, 2, 1 + i * 4, false, pen_bg, brush_bg);
+        F_draw_element(hdc, 2, 1 + i * 4, false, pen_bg, brush_bg, pen_cyan, brush_cyan, pen_white, brush_white);
 
     // Правая граница
     for (i = 0; i < 50; i++)
-        F_draw_element(hdc, 201, 1 + i * 4, false, pen_bg, brush_bg);
+        F_draw_element(hdc, 201, 1 + i * 4, false, pen_bg, brush_bg, pen_cyan, brush_cyan, pen_white, brush_white);
 
     // Верхняя граница
     for (i = 0; i < 50; i++)
-        F_draw_element(hdc, 3 + i * 4, 0, true, pen_bg, brush_bg);
+        F_draw_element(hdc, 3 + i * 4, 0, true, pen_bg, brush_bg, pen_cyan, brush_cyan, pen_white, brush_white);
 }// void F_draw
