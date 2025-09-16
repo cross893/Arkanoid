@@ -7,7 +7,7 @@ C_engine::C_engine()
     brush_bg(0), brush_white(0), brush_dark_red(0), brush_blue(0), brush_cyan(0), brush_light_red(0), brush_black(0),
     hwnd{}
 {
-}
+}// C_engine::C_engine
 
 
 
@@ -31,7 +31,7 @@ void C_engine::F_init(HWND init_hwnd)
     platform.F_redraw(hwnd);
 
     SetTimer(hwnd, timer_id, 25, 0);
-}// void F_init
+}// void C_engine::F_init
 
 
 
@@ -46,7 +46,7 @@ void C_engine::F_draw_frame(HDC hdc, RECT &paint_area)
     ball.F_draw(hdc, paint_area, pen_bg, brush_bg, pen_white, brush_white);
 
     border.F_draw(hdc, paint_area, pen_bg, brush_bg, pen_cyan, brush_cyan, pen_white, brush_white);
-}// void F_draw_frame
+}// void C_engine::F_draw_frame
 
 
 
@@ -76,7 +76,7 @@ int C_engine::F_on_key_down(E_key_type key_type)
         break;
     }// end switch
     return 0;
-}// int F_on_key_down
+}// int C_engine::F_on_key_down
 
 
 
@@ -87,4 +87,4 @@ int C_engine::F_on_timer()
     ball.F_move(hwnd, &level, platform.x_pos, platform.width);
 
     return 0;
-}// int F_on_timer
+}// int C_engine::F_on_timer

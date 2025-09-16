@@ -25,4 +25,4 @@ public:
     static const int ball_size = 4;
     static const int max_x_pos = level_x_offset + level_cell_width * level_width;
     static const int max_y_pos = 199 - ball_size;
-};
+};// end class

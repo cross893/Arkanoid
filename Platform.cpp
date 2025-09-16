@@ -5,7 +5,7 @@
 C_platform::C_platform()
     : inner_width(21), x_pos(C_config::border_x_offset), x_step(C_config::global_scale * 2), width(28), rect{}, prev_rect{}
 {
-}
+}// C_platform::C_platform
 
 
 
@@ -31,7 +31,7 @@ void C_platform::F_redraw(HWND hwnd)
 
     InvalidateRect(hwnd, &prev_rect, FALSE);
     InvalidateRect(hwnd, &rect, FALSE);
-}// void F_redraw
+}// void C_platform::F_redraw
 
 
 
@@ -67,8 +67,4 @@ void C_platform::F_draw(HDC hdc, RECT& paint_area, HPEN pen_bg, HBRUSH brush_bg,
     SelectObject(hdc, brush_blue);
     RoundRect(hdc, (x + 4) * C_config::global_scale, (y + 1) * C_config::global_scale, (x + 4 + inner_width - 1) * C_config::global_scale, (y + 1 + 5) * C_config::global_scale,
         3 * C_config::global_scale, 3 * C_config::global_scale);
-}// void F_draw
-
-
-
-
+}// void C_platform::F_draw

@@ -24,4 +24,3 @@ private:
     RECT rect;
     RECT prev_rect;
 };// end class
-

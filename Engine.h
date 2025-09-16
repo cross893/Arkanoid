@@ -39,4 +39,3 @@ private:
     C_platform platform;
     C_border border;
 };// end class
-

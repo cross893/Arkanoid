@@ -23,7 +23,7 @@ char level_01[C_config::level_height][C_config::level_width] =
 C_level::C_level()
     : pen_white_fat(0), pen_light_red(0), pen_cyan(0), brush_light_red(0), brush_cyan(0), rect{}
 {
-}
+}// C_level::C_level
 
 
 
@@ -66,7 +66,7 @@ void C_level::F_check_level_brick_hit(int& next_y_pos, double& direction)
         }// end for
         brick_y_pos -= C_config::level_cell_height;
     }// end for
-}// int F_check_level_brick_hit
+}// void C_level::F_check_level_brick_hit
 
 
 
@@ -85,7 +85,7 @@ void C_level::F_draw(HDC hdc, RECT& paint_area)
     for (i = 0; i < C_config::level_height; i++)
         for (j = 0; j < C_config::level_width; j++)
             F_draw_brick(hdc, C_config::level_x_offset + j * C_config::level_cell_width, C_config::level_y_offset + i * C_config::level_cell_height, (E_brick_type)level_01[i][j]);
-}// void F_draw_level
+}// void C_level::F_draw
 
 
 
@@ -122,7 +122,7 @@ void C_level::F_draw_brick(HDC hdc, int x, int y, E_brick_type brick_type)
     SelectObject(hdc, brush);
 
     RoundRect(hdc, x * C_config::global_scale, y * C_config::global_scale, (x + brick_width) * C_config::global_scale, (y + brick_height) * C_config::global_scale, 2 * C_config::global_scale, 2 * C_config::global_scale);
-}// void F_draw_brick
+}// void C_level::F_draw_brick
 
 
 
@@ -146,7 +146,7 @@ void C_level::F_set_brick_letter_color(bool is_switch_color, HPEN& front_pen, HB
         back_pen = pen_light_red;
         back_brush = brush_light_red;
     }// endif
-}// void F_set_brick_letter_color
+}// void C_level::F_set_brick_letter_color
 
 
 
@@ -226,4 +226,4 @@ void C_level::F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_type
 
         SetWorldTransform(hdc, &old_xform);
     }// endif
-}// void F_draw_brick_letter
+}// void C_level::F_draw_brick_letter

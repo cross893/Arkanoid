@@ -5,7 +5,7 @@
 C_ball::C_ball()
     : x_pos(20), y_pos(170), speed(2.0), direction(M_PI - M_PI_4), rect{}, prev_rect{}
 {
-}
+}// C_ball::C_ball
 
 
 
@@ -25,7 +25,7 @@ void C_ball::F_draw(HDC hdc, RECT &paint_area, HPEN pen_bg, HBRUSH brush_bg, HPE
     SelectObject(hdc, pen_white);
     SelectObject(hdc, brush_white);
     Ellipse(hdc, rect.left, rect.top, rect.right, rect.bottom);
-}// void F_draw_ball
+}// void C_ball::F_draw
 
 
 
@@ -92,8 +92,4 @@ void C_ball::F_move(HWND hwnd, C_level *level, int platform_x_pos, int platform_
 
     InvalidateRect(hwnd, &prev_rect, FALSE);
     InvalidateRect(hwnd, &rect, FALSE);
-}// void F_move_ball
-
-
-
-
+}// void C_ball::F_move

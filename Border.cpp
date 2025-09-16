@@ -4,7 +4,7 @@
 //------------------------------------------------------------------------------------------------------------
 C_border::C_border()
 {
-}
+}// C_border::C_border
 
 
 
@@ -33,7 +33,7 @@ void C_border::F_draw(HDC hdc, RECT& paint_area, HPEN pen_bg, HBRUSH brush_bg, H
     // Верхняя граница
     for (i = 0; i < 50; i++)
         F_draw_element(hdc, 3 + i * 4, 0, true, pen_bg, brush_bg, pen_cyan, brush_cyan, pen_white, brush_white);
-}// void F_draw
+}// void C_border::F_draw
 
 
 
@@ -64,4 +64,4 @@ void C_border::F_draw_element(HDC hdc, int x, int y, bool top_border, HPEN pen_b
         Rectangle(hdc, (x + 2) * C_config::global_scale, (y + 2) * C_config::global_scale, (x + 3) * C_config::global_scale, (y + 3) * C_config::global_scale);
     else
         Rectangle(hdc, (x + 2) * C_config::global_scale, (y + 1) * C_config::global_scale, (x + 3) * C_config::global_scale, (y + 2) * C_config::global_scale);
-}// void F_draw
+}// void C_border::F_draw_element

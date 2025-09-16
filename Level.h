@@ -38,4 +38,3 @@ private:
 
     RECT rect;
 };// end class
-
