@@ -1,4 +1,4 @@
-#include "Border.h"
+Ôªø#include "Border.h"
 
 // C_border
 //------------------------------------------------------------------------------------------------------------
@@ -18,9 +18,30 @@ void C_border::F_init()
 
 
 //------------------------------------------------------------------------------------------------------------
+void C_border::F_draw(HDC hdc, RECT& paint_area, HPEN pen_bg, HBRUSH brush_bg, HPEN pen_cyan, HBRUSH brush_cyan, HPEN pen_white, HBRUSH brush_white)
+{
+    int i;
+
+    // –õ–µ–≤–∞—è –≥—Ä–∞–Ω–∏—Ü–∞
+    for (i = 0; i < 50; i++)
+        F_draw_element(hdc, 2, 1 + i * 4, false, pen_bg, brush_bg, pen_cyan, brush_cyan, pen_white, brush_white);
+
+    // –ü—Ä–∞–≤–∞—è –≥—Ä–∞–Ω–∏—Ü–∞
+    for (i = 0; i < 50; i++)
+        F_draw_element(hdc, 201, 1 + i * 4, false, pen_bg, brush_bg, pen_cyan, brush_cyan, pen_white, brush_white);
+
+    // –í–µ—Ä—Ö–Ω—è—è –≥—Ä–∞–Ω–∏—Ü–∞
+    for (i = 0; i < 50; i++)
+        F_draw_element(hdc, 3 + i * 4, 0, true, pen_bg, brush_bg, pen_cyan, brush_cyan, pen_white, brush_white);
+}// void F_draw
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
 void C_border::F_draw_element(HDC hdc, int x, int y, bool top_border, HPEN pen_bg, HBRUSH brush_bg, HPEN pen_cyan, HBRUSH brush_cyan, HPEN pen_white, HBRUSH brush_white)
 {
-    // —ËÌˇˇ ˜‡ÒÚ¸ ÎËÌËË
+    // –°–∏–Ω—è—è —á–∞—Å—Ç—å –ª–∏–Ω–∏–∏
     SelectObject(hdc, pen_cyan);
     SelectObject(hdc, brush_cyan);
     if (top_border)
@@ -28,7 +49,7 @@ void C_border::F_draw_element(HDC hdc, int x, int y, bool top_border, HPEN pen_b
     else
         Rectangle(hdc, (x + 1) * C_config::global_scale, y * C_config::global_scale, (x + 4) * C_config::global_scale, (y + 4) * C_config::global_scale);
 
-    // ¡ÂÎ‡ˇ ˜‡ÒÚ¸ ÎËÌËË
+    // –ë–µ–ª–∞—è —á–∞—Å—Ç—å –ª–∏–Ω–∏–∏
     SelectObject(hdc, pen_white);
     SelectObject(hdc, brush_white);
     if (top_border)
@@ -36,32 +57,11 @@ void C_border::F_draw_element(HDC hdc, int x, int y, bool top_border, HPEN pen_b
     else
         Rectangle(hdc, x * C_config::global_scale, y * C_config::global_scale, (x + 1) * C_config::global_scale, (y + 4) * C_config::global_scale);
 
-    // ◊ÂÌ‡ˇ ÔÂÙÓ‡ˆËˇ
+    // –ß–µ—Ä–Ω–∞—è –ø–µ—Ä—Ñ–æ—Ä–∞—Ü–∏—è
     SelectObject(hdc, pen_bg);
     SelectObject(hdc, brush_bg);
     if (top_border)
         Rectangle(hdc, (x + 2) * C_config::global_scale, (y + 2) * C_config::global_scale, (x + 3) * C_config::global_scale, (y + 3) * C_config::global_scale);
     else
         Rectangle(hdc, (x + 2) * C_config::global_scale, (y + 1) * C_config::global_scale, (x + 3) * C_config::global_scale, (y + 2) * C_config::global_scale);
-}// void F_draw
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void C_border::F_draw(HDC hdc, RECT& paint_area, HPEN pen_bg, HBRUSH brush_bg, HPEN pen_cyan, HBRUSH brush_cyan, HPEN pen_white, HBRUSH brush_white)
-{
-    int i;
-
-    // ÀÂ‚‡ˇ „‡ÌËˆ‡
-    for (i = 0; i < 50; i++)
-        F_draw_element(hdc, 2, 1 + i * 4, false, pen_bg, brush_bg, pen_cyan, brush_cyan, pen_white, brush_white);
-
-    // œ‡‚‡ˇ „‡ÌËˆ‡
-    for (i = 0; i < 50; i++)
-        F_draw_element(hdc, 201, 1 + i * 4, false, pen_bg, brush_bg, pen_cyan, brush_cyan, pen_white, brush_white);
-
-    // ¬ÂıÌˇˇ „‡ÌËˆ‡
-    for (i = 0; i < 50; i++)
-        F_draw_element(hdc, 3 + i * 4, 0, true, pen_bg, brush_bg, pen_cyan, brush_cyan, pen_white, brush_white);
 }// void F_draw

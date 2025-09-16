@@ -1,7 +1,7 @@
-#include "Level.h"
+ï»¿#include "Level.h"
 
-char level_01[C_level::height][C_level::width] =
-{// Ñîçäàíèå ïåðâîãî óðîâíÿ
+char level_01[C_config::level_height][C_config::level_width] =
+{// Ð¡Ð¾Ð·Ð´Ð°Ð½Ð¸Ðµ Ð¿ÐµÑ€Ð²Ð¾Ð³Ð¾ ÑƒÑ€Ð¾Ð²Ð½Ñ
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -34,10 +34,10 @@ void C_level::F_init()
     C_config::F_create_pen_brush(255, 85, 85, pen_light_red, brush_light_red);
     C_config::F_create_pen_brush(85, 255, 255, pen_cyan, brush_cyan);
 
-    rect.left = C_level::x_offset * C_config::global_scale;
-    rect.top = C_level::y_offset * C_config::global_scale;
-    rect.right = rect.left + C_level::cell_width * C_level::width * C_config::global_scale;
-    rect.bottom = rect.top + C_level::cell_height * C_level::height * C_config::global_scale;
+    rect.left = C_config::level_x_offset * C_config::global_scale;
+    rect.top = C_config::level_y_offset * C_config::global_scale;
+    rect.right = rect.left + C_config::level_cell_width * C_config::level_width * C_config::global_scale;
+    rect.bottom = rect.top + C_config::level_cell_height * C_config::level_height * C_config::global_scale;
 
 }// void C_level::F_init
 
@@ -47,13 +47,13 @@ void C_level::F_init()
 //------------------------------------------------------------------------------------------------------------
 void C_level::F_check_level_brick_hit(int& next_y_pos, double& direction)
 {
-    // Îòðàæåíèå øàðèêà îò êèðïè÷åé
+    // ÐžÑ‚Ñ€Ð°Ð¶ÐµÐ½Ð¸Ðµ ÑˆÐ°Ñ€Ð¸ÐºÐ° Ð¾Ñ‚ ÐºÐ¸Ñ€Ð¿Ð¸Ñ‡ÐµÐ¹
     int i, j;
-    int brick_y_pos = y_offset + height * cell_height;
+    int brick_y_pos = C_config::level_y_offset + C_config::level_height * C_config::level_cell_height;
 
-    for (i = height - 1; i >= 0; i--)
+    for (i = C_config::level_height - 1; i >= 0; i--)
     {
-        for (j = 0; j < width; j++)
+        for (j = 0; j < C_config::level_width; j++)
         {
             if (level_01[i][j] == 0)
                 continue;
@@ -64,7 +64,7 @@ void C_level::F_check_level_brick_hit(int& next_y_pos, double& direction)
                 direction = -direction;
             }// endif
         }// end for
-        brick_y_pos -= cell_height;
+        brick_y_pos -= C_config::level_cell_height;
     }// end for
 }// int F_check_level_brick_hit
 
@@ -72,8 +72,27 @@ void C_level::F_check_level_brick_hit(int& next_y_pos, double& direction)
 
 
 //------------------------------------------------------------------------------------------------------------
+void C_level::F_draw(HDC hdc, RECT& paint_area)
+{// ÐžÑ‚Ñ€Ð¸ÑÐ¾Ð²ÐºÐ° ÑƒÑ€Ð¾Ð²Ð½Ñ
+    int i;
+    int j;
+
+    RECT intersection_rect;
+
+    if (!IntersectRect(&intersection_rect, &paint_area, &rect))
+        return;
+
+    for (i = 0; i < C_config::level_height; i++)
+        for (j = 0; j < C_config::level_width; j++)
+            F_draw_brick(hdc, C_config::level_x_offset + j * C_config::level_cell_width, C_config::level_y_offset + i * C_config::level_cell_height, (E_brick_type)level_01[i][j]);
+}// void F_draw_level
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
 void C_level::F_draw_brick(HDC hdc, int x, int y, E_brick_type brick_type)
-{// Îòðèñîâêà êèðïè÷à
+{// ÐžÑ‚Ñ€Ð¸ÑÐ¾Ð²ÐºÐ° ÐºÐ¸Ñ€Ð¿Ð¸Ñ‡Ð°
     HPEN pen;
     HBRUSH brush;
 
@@ -134,7 +153,7 @@ void C_level::F_set_brick_letter_color(bool is_switch_color, HPEN& front_pen, HB
 
 //------------------------------------------------------------------------------------------------------------
 void C_level::F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_type, E_letter_type letter_type, int rotation_step)
-{// Îòðèñîâêà ïàäàþùåé áóêâû
+{// ÐžÑ‚Ñ€Ð¸ÑÐ¾Ð²ÐºÐ° Ð¿Ð°Ð´Ð°ÑŽÑ‰ÐµÐ¹ Ð±ÑƒÐºÐ²Ñ‹
     bool    switch_color;
     double  offset;
     double  rotation_angle;
@@ -208,26 +227,3 @@ void C_level::F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_type
         SetWorldTransform(hdc, &old_xform);
     }// endif
 }// void F_draw_brick_letter
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void C_level::F_draw(HDC hdc, RECT& paint_area)
-{// Îòðèñîâêà óðîâíÿ
-    int i;
-    int j;
-
-    RECT intersection_rect;
-
-    if (!IntersectRect(&intersection_rect, &paint_area, &rect))
-        return;
-
-    for (i = 0; i < height; i++)
-        for (j = 0; j < width; j++)
-            F_draw_brick(hdc, x_offset + j * cell_width, y_offset + i * cell_height, (E_brick_type)level_01[i][j]);
-}// void F_draw_level
-
-
-
-

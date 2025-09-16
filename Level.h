@@ -1,12 +1,9 @@
-#pragma once
-
-#define _USE_MATH_DEFINES
-#include <math.h>
+п»ї#pragma once
 
 #include "Config.h"
 
 enum E_brick_type
-{// Создане перечисления для типа кирпичей
+{// РЎРѕР·РґР°РЅРµ РїРµСЂРµС‡РёСЃР»РµРЅРёСЏ РґР»СЏ С‚РёРїР° РєРёСЂРїРёС‡РµР№
     EBT_none,
     EBT_light_red,
     EBT_cyan
@@ -27,13 +24,6 @@ public:
     void F_init();
     void F_check_level_brick_hit(int& next_y_pos, double& direction);
     void F_draw(HDC hdc, RECT& paint_area);
-
-    static const int width = 12;
-    static const int height = 14;
-    static const int x_offset = 8;
-    static const int y_offset = 6;
-    static const int cell_width = 16;
-    static const int cell_height = 8;
 
 private:
     void F_draw_brick(HDC hdc, int x, int y, E_brick_type brick_type);
