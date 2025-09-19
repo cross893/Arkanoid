@@ -7,18 +7,17 @@
 class C_ball
 {
 public:
-    C_ball();
+	C_ball();
 
-    void F_draw(HDC hdc, RECT &paint_area, HPEN pen_bg, HBRUSH brush_bg, HPEN pen_white, HBRUSH brush_white);
-    void F_move(HWND hwnd, C_level* level, int platform_x_pos, int platform_width);
-
-    double      direction;
+	void F_draw(HDC hdc, RECT& paint_area, HPEN pen_bg, HBRUSH brush_bg, HPEN pen_white, HBRUSH brush_white);
+	void F_move(HWND hwnd, C_level* level, int platform_x_pos, int platform_width);
 
 private:
-    int         x_pos;
-    int         y_pos;
-    double      speed;
+	int         x_pos;
+	int         y_pos;
+	double      speed;
+	double      direction;
 
-    RECT        rect;
-    RECT        prev_rect;
+	RECT        rect;
+	RECT        prev_rect;
 };// end class
