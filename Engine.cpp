@@ -39,7 +39,7 @@ void C_engine::F_init(HWND init_hwnd)
 //------------------------------------------------------------------------------------------------------------
 void C_engine::F_draw_frame(HDC hdc, RECT& paint_area)
 {// Отрисовка игрового поля
-	level.F_draw(hdc, paint_area);
+	level.F_draw(hwnd, hdc, paint_area);
 
 	platform.F_draw(hdc, paint_area, pen_bg, brush_bg, pen_dark_red, brush_dark_red, pen_white, brush_white, pen_blue, brush_blue);
 
