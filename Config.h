@@ -22,7 +22,10 @@ public:
 	static const int level_y_offset = 6;
 	static const int level_cell_width = 16;
 	static const int level_cell_height = 8;
+	static const int brick_width = 15;
+	static const int brick_height = 7;
 	static const int ball_size = 4;
 	static const int max_x_pos = level_x_offset + level_cell_width * level_width;
 	static const int max_y_pos = 199 - ball_size;
+	static const int FPS = 40;
 };// end class

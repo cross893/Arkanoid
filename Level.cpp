@@ -18,43 +18,6 @@ char C_level::level_01[C_config::level_height][C_config::level_width] =
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };// char level_01
 
-// C_active_brick
-//------------------------------------------------------------------------------------------------------------
-C_active_brick::C_active_brick()
-	: fade_step(0)
-{
-}
-
-
-
-
-//------------------------------------------------------------------------------------------------------------
-void C_active_brick::F_draw(HWND hwnd, HDC hdc, RECT& paint_area)
-{
-	RECT brick_rect;
-	HPEN pen;
-	HBRUSH brush;
-
-	C_config::F_create_pen_brush(85 - fade_step * (85 / max_fade_step), 255 - fade_step * (255 / max_fade_step), 255 - fade_step * (255 / max_fade_step), pen, brush);
-
-	++fade_step;
-
-	SelectObject(hdc, pen);
-	SelectObject(hdc, brush);
-
-	brick_rect.left = (C_config::level_x_offset + C_config::level_cell_width) * C_config::global_scale;
-	brick_rect.top = (C_config::level_y_offset + C_config::level_cell_height) * C_config::global_scale;
-	brick_rect.right = brick_rect.left + C_level::brick_width * C_config::global_scale;
-	brick_rect.bottom = brick_rect.top + C_level::brick_height * C_config::global_scale;
-
-	InvalidateRect(hwnd, &brick_rect, false);
-
-	RoundRect(hdc, brick_rect.left, brick_rect.top, brick_rect.right, brick_rect.bottom, 2 * C_config::global_scale, 2 * C_config::global_scale);
-}// C_active_brick::F_draw
-
-
-
-
 // C_level
 //------------------------------------------------------------------------------------------------------------
 C_level::C_level()
@@ -123,7 +86,7 @@ void C_level::F_draw(HWND hwnd, HDC hdc, RECT& paint_area)
 		for (j = 0; j < C_config::level_width; j++)
 			F_draw_brick(hdc, C_config::level_x_offset + j * C_config::level_cell_width, C_config::level_y_offset + i * C_config::level_cell_height, (E_brick_type)level_01[i][j]);
 
-	active_brick.F_draw(hwnd, hdc, paint_area);
+	active_brick.F_draw(hdc, paint_area);
 }// void C_level::F_draw
 
 
@@ -160,7 +123,7 @@ void C_level::F_draw_brick(HDC hdc, int x, int y, E_brick_type brick_type)
 	SelectObject(hdc, pen);
 	SelectObject(hdc, brush);
 
-	RoundRect(hdc, x * C_config::global_scale, y * C_config::global_scale, (x + brick_width) * C_config::global_scale, (y + brick_height) * C_config::global_scale, 2 * C_config::global_scale, 2 * C_config::global_scale);
+	RoundRect(hdc, x * C_config::global_scale, y * C_config::global_scale, (x + C_config::brick_width) * C_config::global_scale, (y + C_config::brick_height) * C_config::global_scale, 2 * C_config::global_scale, 2 * C_config::global_scale);
 }// void C_level::F_draw_brick
 
 
@@ -196,7 +159,7 @@ void C_level::F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_type
 	bool    switch_color;
 	double  offset;
 	double  rotation_angle;
-	int     brick_half_height = brick_height * C_config::global_scale / 2;
+	int     brick_half_height = C_config::brick_height * C_config::global_scale / 2;
 	int     back_part_offset;
 
 	HPEN    front_pen, back_pen;
@@ -224,11 +187,11 @@ void C_level::F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_type
 	{
 		SelectObject(hdc, back_pen);
 		SelectObject(hdc, back_brush);
-		Rectangle(hdc, x, y + brick_half_height - C_config::global_scale, x + brick_width * C_config::global_scale, y + brick_half_height);
+		Rectangle(hdc, x, y + brick_half_height - C_config::global_scale, x + C_config::brick_width * C_config::global_scale, y + brick_half_height);
 
 		SelectObject(hdc, front_pen);
 		SelectObject(hdc, front_brush);
-		Rectangle(hdc, x, y + brick_half_height, x + brick_width * C_config::global_scale, y + brick_half_height + C_config::global_scale - 1);
+		Rectangle(hdc, x, y + brick_half_height, x + C_config::brick_width * C_config::global_scale, y + brick_half_height + C_config::global_scale - 1);
 	}
 	else
 	{
@@ -248,11 +211,11 @@ void C_level::F_draw_brick_letter(HDC hdc, int x, int y, E_brick_type brick_type
 
 		SelectObject(hdc, back_pen);
 		SelectObject(hdc, back_brush);
-		Rectangle(hdc, 0, -brick_half_height - back_part_offset, brick_width * C_config::global_scale, brick_half_height - back_part_offset);
+		Rectangle(hdc, 0, -brick_half_height - back_part_offset, C_config::brick_width * C_config::global_scale, brick_half_height - back_part_offset);
 
 		SelectObject(hdc, front_pen);
 		SelectObject(hdc, front_brush);
-		Rectangle(hdc, 0, -brick_half_height, brick_width * C_config::global_scale, brick_half_height);
+		Rectangle(hdc, 0, -brick_half_height, C_config::brick_width * C_config::global_scale, brick_half_height);
 
 		if (rotation_step > 4 && rotation_step <= 12)
 		{

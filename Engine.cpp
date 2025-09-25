@@ -30,7 +30,7 @@ void C_engine::F_init(HWND init_hwnd)
 
 	platform.F_redraw(hwnd);
 
-	SetTimer(hwnd, timer_id, 25, 0);
+	SetTimer(hwnd, timer_id, 1000 / C_config::FPS, 0);
 }// void C_engine::F_init
 
 
@@ -85,6 +85,8 @@ int C_engine::F_on_key_down(E_key_type key_type)
 int C_engine::F_on_timer()
 {
 	ball.F_move(hwnd, &level, platform.x_pos, platform.width);
+
+	level.active_brick.F_act(hwnd);
 
 	return 0;
 }// int C_engine::F_on_timer

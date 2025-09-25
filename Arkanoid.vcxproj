@@ -123,6 +123,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Active_brick.h" />
     <ClInclude Include="Ball.h" />
     <ClInclude Include="Border.h" />
     <ClInclude Include="Config.h" />
@@ -135,6 +136,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Active_brick.cpp" />
     <ClCompile Include="Ball.cpp" />
     <ClCompile Include="Border.cpp" />
     <ClCompile Include="Config.cpp" />

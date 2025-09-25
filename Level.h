@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Config.h"
+#include "Active_brick.h"
 
 enum E_brick_type
 {// Создане перечисления для типа кирпичей
@@ -16,19 +17,6 @@ enum E_letter_type
 };
 
 //------------------------------------------------------------------------------------------------------------
-class C_active_brick
-{
-public:
-	C_active_brick();
-
-	void F_draw(HWND hwnd, HDC hdc, RECT& paint_area);
-
-	static const int max_fade_step = 10;
-
-	int fade_step;
-};
-
-//------------------------------------------------------------------------------------------------------------
 class C_level
 {
 public:
@@ -38,8 +26,7 @@ public:
 	void F_check_level_brick_hit(int& next_y_pos, double& direction);
 	void F_draw(HWND hwnd, HDC hdc, RECT& paint_area);
 
-	static const int brick_width = 15;
-	static const int brick_height = 7;
+	C_active_brick active_brick;
 
 private:
 	void F_draw_brick(HDC hdc, int x, int y, E_brick_type brick_type);
@@ -52,6 +39,4 @@ private:
 	HBRUSH brush_light_red, brush_cyan;
 
 	RECT rect;
-
-	C_active_brick active_brick;
 };// end class
