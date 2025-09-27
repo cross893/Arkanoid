@@ -31,8 +31,8 @@ C_level::C_level()
 //------------------------------------------------------------------------------------------------------------
 void C_level::F_init()
 {
-	C_config::F_create_pen_brush(255, 85, 85, pen_light_red, brush_light_red);
-	C_config::F_create_pen_brush(85, 255, 255, pen_cyan, brush_cyan);
+	C_config::F_create_pen_brush(C_config::light_red, pen_light_red, brush_light_red);
+	C_config::F_create_pen_brush(C_config::cyan, pen_cyan, brush_cyan);
 
 	rect.left = C_config::level_x_offset * C_config::global_scale;
 	rect.top = C_config::level_y_offset * C_config::global_scale;

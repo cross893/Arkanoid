@@ -6,10 +6,22 @@
 #include <windows.h>
 
 //------------------------------------------------------------------------------------------------------------
+class C_color
+{
+public:
+	C_color(unsigned char r, unsigned char g, unsigned char b);
+
+	unsigned char R, G, B;
+};// end class
+
+//------------------------------------------------------------------------------------------------------------
 class C_config
 {
 public:
+	static void F_create_pen_brush(const C_color &color, HPEN& pen, HBRUSH& brush);
 	static void F_create_pen_brush(unsigned char r, unsigned char g, unsigned char b, HPEN& pen, HBRUSH& brush);
+
+	static const C_color light_red, cyan;
 
 	static const int circle_size = 7;
 	static const int platform_y_pos = 185;

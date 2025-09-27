@@ -30,7 +30,8 @@ void C_active_brick::F_draw(HDC hdc, RECT& paint_area)
 	HPEN pen;
 	HBRUSH brush;
 
-	C_config::F_create_pen_brush(85 - fade_step * (85 / max_fade_step), 255 - fade_step * (255 / max_fade_step), 255 - fade_step * (255 / max_fade_step), pen, brush);
+	C_config::F_create_pen_brush(C_config::cyan.R - fade_step * (C_config::cyan.R / max_fade_step), C_config::cyan.G - fade_step * (C_config::cyan.G / max_fade_step),
+		C_config::cyan.B - fade_step * (C_config::cyan.B / max_fade_step), pen, brush);
 
 	SelectObject(hdc, pen);
 	SelectObject(hdc, brush);
@@ -42,7 +43,3 @@ void C_active_brick::F_draw(HDC hdc, RECT& paint_area)
 
 	RoundRect(hdc, brick_rect.left, brick_rect.top, brick_rect.right, brick_rect.bottom, 2 * C_config::global_scale, 2 * C_config::global_scale);
 }// C_active_brick::F_draw
-
-
-
-
