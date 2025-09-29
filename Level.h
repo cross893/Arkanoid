@@ -3,13 +3,6 @@
 #include "Config.h"
 #include "Active_brick.h"
 
-enum E_brick_type
-{// Создане перечисления для типа кирпичей
-	EBT_none,
-	EBT_light_red,
-	EBT_cyan
-};
-
 enum E_letter_type
 {
 	ELT_none,

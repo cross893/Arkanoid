@@ -21,7 +21,7 @@ char C_level::level_01[C_config::level_height][C_config::level_width] =
 // C_level
 //------------------------------------------------------------------------------------------------------------
 C_level::C_level()
-	: pen_white_fat(0), pen_light_red(0), pen_cyan(0), brush_light_red(0), brush_cyan(0), rect{}
+	: active_brick(EBT_cyan), pen_white_fat(0), pen_light_red(0), pen_cyan(0), brush_light_red(0), brush_cyan(0), rect{}
 {
 }// C_level::C_level
 

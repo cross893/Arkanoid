@@ -1,9 +1,13 @@
 #include "Active_brick.h"
 
 // C_active_brick
+HPEN C_active_brick::fading_light_red_pens[max_fade_step];
+HPEN C_active_brick::fading_cyan_pens[max_fade_step];
+HBRUSH C_active_brick::fading_light_red_brushes[max_fade_step];
+HBRUSH C_active_brick::fading_cyan_brushes[max_fade_step];
 //------------------------------------------------------------------------------------------------------------
-C_active_brick::C_active_brick()
-	: fade_step(0)
+C_active_brick::C_active_brick(E_brick_type active_brick_type)
+: fade_step(0), brick_type(active_brick_type)
 {
 }// C_active_brick::C_active_brick
 
@@ -27,11 +31,22 @@ void C_active_brick::F_act(HWND hwnd)
 //------------------------------------------------------------------------------------------------------------
 void C_active_brick::F_draw(HDC hdc, RECT& paint_area)
 {
-	HPEN pen;
-	HBRUSH brush;
+	HPEN pen = 0;
+	HBRUSH brush = 0;
 
-	C_config::F_create_pen_brush(C_config::cyan.R - fade_step * (C_config::cyan.R / max_fade_step), C_config::cyan.G - fade_step * (C_config::cyan.G / max_fade_step),
-		C_config::cyan.B - fade_step * (C_config::cyan.B / max_fade_step), pen, brush);
+	switch (brick_type)
+	{
+	case EBT_light_red:
+		pen = fading_light_red_pens[fade_step];
+		brush = fading_light_red_brushes[fade_step];
+		break;
+
+
+	case EBT_cyan:
+		pen = fading_cyan_pens[fade_step];
+		brush = fading_cyan_brushes[fade_step];
+		break;
+	}
 
 	SelectObject(hdc, pen);
 	SelectObject(hdc, brush);
@@ -43,3 +58,29 @@ void C_active_brick::F_draw(HDC hdc, RECT& paint_area)
 
 	RoundRect(hdc, brick_rect.left, brick_rect.top, brick_rect.right, brick_rect.bottom, 2 * C_config::global_scale, 2 * C_config::global_scale);
 }// C_active_brick::F_draw
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void C_active_brick::F_setup_colors()
+{
+	int i;
+	unsigned char r, g, b;
+
+	for (i = 0; i < max_fade_step; i++)
+	{
+		r = C_config::light_red.R - i * (C_config::light_red.R / max_fade_step);
+		g = C_config::light_red.G - i * (C_config::light_red.G / max_fade_step);
+		b = C_config::light_red.B - i * (C_config::light_red.B / max_fade_step);
+
+		C_config::F_create_pen_brush(r, g, b, fading_light_red_pens[i], fading_light_red_brushes[i]);
+
+
+		r = C_config::cyan.R - i * (C_config::cyan.R / max_fade_step);
+		g = C_config::cyan.G - i * (C_config::cyan.G / max_fade_step);
+		b = C_config::cyan.B - i * (C_config::cyan.B / max_fade_step);
+
+		C_config::F_create_pen_brush(r, g, b, fading_cyan_pens[i], fading_cyan_brushes[i]);
+	}
+}// C_active_brick::F_setup_colors
