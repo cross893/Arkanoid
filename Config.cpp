@@ -10,6 +10,7 @@ C_color::C_color(unsigned char r, unsigned char g, unsigned char b)
 
 // C_config
 //------------------------------------------------------------------------------------------------------------
+const C_color C_config::bg_color(15, 63, 31);
 const C_color C_config::light_red(255, 85, 85);
 const C_color C_config::cyan(85, 255, 255);
 

@@ -17,7 +17,7 @@ void C_engine::F_init(HWND init_hwnd)
 {// Настройка игры при старте
 	hwnd = init_hwnd;
 	pen_white_fat = CreatePen(PS_SOLID, C_config::global_scale, RGB(255, 255, 255));
-	C_config::F_create_pen_brush(15, 63, 31, pen_bg, brush_bg);
+	C_config::F_create_pen_brush(C_config::bg_color, pen_bg, brush_bg);
 	C_config::F_create_pen_brush(255, 255, 255, pen_white, brush_white);
 	C_config::F_create_pen_brush(0, 0, 0, pen_black, brush_black);
 	C_config::F_create_pen_brush(255, 85, 85, pen_light_red, brush_light_red);
@@ -25,6 +25,7 @@ void C_engine::F_init(HWND init_hwnd)
 	C_config::F_create_pen_brush(151, 0, 0, pen_dark_red, brush_dark_red);
 	C_config::F_create_pen_brush(0, 128, 192, pen_blue, brush_blue);
 
+	C_active_brick::F_setup_colors();
 	level.F_init();
 	platform.F_init();
 

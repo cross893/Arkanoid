@@ -17,7 +17,7 @@ C_active_brick::C_active_brick(E_brick_type active_brick_type)
 //------------------------------------------------------------------------------------------------------------
 void C_active_brick::F_act(HWND hwnd)
 {
-	if (fade_step < max_fade_step)
+	if (fade_step < max_fade_step - 1)
 	{
 		++fade_step;
 
@@ -66,20 +66,21 @@ void C_active_brick::F_draw(HDC hdc, RECT& paint_area)
 void C_active_brick::F_setup_colors()
 {
 	int i;
+	int max_step = max_fade_step - 1;
 	unsigned char r, g, b;
 
 	for (i = 0; i < max_fade_step; i++)
 	{
-		r = C_config::light_red.R - i * (C_config::light_red.R / max_fade_step);
-		g = C_config::light_red.G - i * (C_config::light_red.G / max_fade_step);
-		b = C_config::light_red.B - i * (C_config::light_red.B / max_fade_step);
+		r = C_config::light_red.R - i * (C_config::light_red.R - C_config::bg_color.R) / max_step;
+		g = C_config::light_red.G - i * (C_config::light_red.G - C_config::bg_color.G) / max_step;
+		b = C_config::light_red.B - i * (C_config::light_red.B - C_config::bg_color.B) / max_step;
 
 		C_config::F_create_pen_brush(r, g, b, fading_light_red_pens[i], fading_light_red_brushes[i]);
 
 
-		r = C_config::cyan.R - i * (C_config::cyan.R / max_fade_step);
-		g = C_config::cyan.G - i * (C_config::cyan.G / max_fade_step);
-		b = C_config::cyan.B - i * (C_config::cyan.B / max_fade_step);
+		r = C_config::cyan.R - i * (C_config::cyan.R - C_config::bg_color.R) / max_step;
+		g = C_config::cyan.G - i * (C_config::cyan.G - C_config::bg_color.G) / max_step;
+		b = C_config::cyan.B - i * (C_config::cyan.B - C_config::bg_color.B) / max_step;
 
 		C_config::F_create_pen_brush(r, g, b, fading_cyan_pens[i], fading_cyan_brushes[i]);
 	}

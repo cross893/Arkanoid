@@ -19,7 +19,7 @@ public:
 	void F_draw(HDC hdc, RECT& paint_area);
 	static void F_setup_colors();
 
-	static const int max_fade_step = 30;
+	static const int max_fade_step = 40;
 
 	static HPEN fading_light_red_pens[max_fade_step];
 	static HPEN fading_cyan_pens[max_fade_step];
