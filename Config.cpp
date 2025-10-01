@@ -14,6 +14,15 @@ const C_color C_config::bg_color(15, 63, 31);
 const C_color C_config::light_red(255, 85, 85);
 const C_color C_config::cyan(85, 255, 255);
 
+HPEN C_config::pen_bg;
+HBRUSH C_config::brush_bg;
+
+//------------------------------------------------------------------------------------------------------------
+void C_config::F_setup_colors()
+{
+	C_config::F_create_pen_brush(C_config::bg_color, pen_bg, brush_bg);
+}
+
 //------------------------------------------------------------------------------------------------------------
 void C_config::F_create_pen_brush(const C_color &color, HPEN& pen, HBRUSH& brush)
 {// Создание пера и кисти

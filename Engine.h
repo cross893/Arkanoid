@@ -28,8 +28,8 @@ public:
 
 private:
 	HWND hwnd;
-	HPEN pen_white_fat, pen_light_red, pen_black, pen_bg, pen_white, pen_dark_red, pen_blue, pen_cyan;
-	HBRUSH brush_light_red, brush_black, brush_bg, brush_white, brush_dark_red, brush_blue, brush_cyan;
+	HPEN pen_white_fat, pen_light_red, pen_black, pen_white, pen_dark_red, pen_blue, pen_cyan;
+	HBRUSH brush_light_red, brush_black, brush_white, brush_dark_red, brush_blue, brush_cyan;
 
 	C_ball ball;
 	C_level level;
