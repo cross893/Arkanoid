@@ -37,7 +37,7 @@ void C_platform::F_redraw(HWND hwnd)
 
 
 //------------------------------------------------------------------------------------------------------------
-void C_platform::F_draw(HDC hdc, RECT& paint_area, HPEN pen_bg, HBRUSH brush_bg, HPEN pen_dark_red, HBRUSH brush_dark_red, HPEN pen_white, HBRUSH brush_white, HPEN pen_blue, HBRUSH brush_blue)
+void C_platform::F_draw(HDC hdc, RECT& paint_area, HPEN pen_dark_red, HBRUSH brush_dark_red, HPEN pen_white, HBRUSH brush_white, HPEN pen_blue, HBRUSH brush_blue)
 {// Отрисовка платформы
 	int x = x_pos;
 	int y = C_config::platform_y_pos;
@@ -47,8 +47,8 @@ void C_platform::F_draw(HDC hdc, RECT& paint_area, HPEN pen_bg, HBRUSH brush_bg,
 	if (!IntersectRect(&intersection_rect, &paint_area, &rect))
 		return;
 
-	SelectObject(hdc, pen_bg);
-	SelectObject(hdc, brush_bg);
+	SelectObject(hdc, C_config::pen_bg);
+	SelectObject(hdc, C_config::brush_bg);
 	Rectangle(hdc, prev_rect.left, prev_rect.top, prev_rect.right, prev_rect.bottom);
 
 	// Рисуем боковые шарики

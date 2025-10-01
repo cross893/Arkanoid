@@ -11,15 +11,15 @@ C_ball::C_ball()
 
 
 //------------------------------------------------------------------------------------------------------------
-void C_ball::F_draw(HDC hdc, RECT& paint_area, HPEN pen_bg, HBRUSH brush_bg, HPEN pen_white, HBRUSH brush_white)
+void C_ball::F_draw(HDC hdc, RECT& paint_area, HPEN pen_white, HBRUSH brush_white)
 {
 	RECT intersection_rect;
 
 	if (!IntersectRect(&intersection_rect, &paint_area, &rect))
 		return;
 
-	SelectObject(hdc, pen_bg);
-	SelectObject(hdc, brush_bg);
+	SelectObject(hdc, C_config::pen_bg);
+	SelectObject(hdc, C_config::brush_bg);
 	Ellipse(hdc, prev_rect.left, prev_rect.top, prev_rect.right, prev_rect.bottom);
 
 	SelectObject(hdc, pen_white);

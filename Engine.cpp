@@ -24,7 +24,6 @@ void C_engine::F_init(HWND init_hwnd)
 	C_config::F_create_pen_brush(151, 0, 0, pen_dark_red, brush_dark_red);
 	C_config::F_create_pen_brush(0, 128, 192, pen_blue, brush_blue);
 
-	C_config::F_setup_colors();
 	C_active_brick::F_setup_colors();
 	level.F_init();
 	platform.F_init();
@@ -42,11 +41,11 @@ void C_engine::F_draw_frame(HDC hdc, RECT& paint_area)
 {// Отрисовка игрового поля
 	level.F_draw(hwnd, hdc, paint_area);
 
-	platform.F_draw(hdc, paint_area, C_config::pen_bg, C_config::brush_bg, pen_dark_red, brush_dark_red, pen_white, brush_white, pen_blue, brush_blue);
+	platform.F_draw(hdc, paint_area, pen_dark_red, brush_dark_red, pen_white, brush_white, pen_blue, brush_blue);
 
-	ball.F_draw(hdc, paint_area, C_config::pen_bg, C_config::brush_bg, pen_white, brush_white);
+	ball.F_draw(hdc, paint_area, pen_white, brush_white);
 
-	border.F_draw(hdc, paint_area, C_config::pen_bg, C_config::brush_bg, pen_cyan, brush_cyan, pen_white, brush_white);
+	border.F_draw(hdc, paint_area, pen_cyan, brush_cyan, pen_white, brush_white);
 }// void C_engine::F_draw_frame
 
 
