@@ -19,6 +19,10 @@ public:
 	void F_draw(HDC hdc, RECT& paint_area);
 	static void F_setup_colors();
 
+private:
+	static unsigned char F_get_fading_channel(unsigned char color, unsigned char bg_color, int step);
+	static void F_get_fading_color(const C_color &color, int step, HPEN &pen, HBRUSH &brush);
+
 	static const int max_fade_step = 40;
 
 	static HPEN fading_light_red_pens[max_fade_step];

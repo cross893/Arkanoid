@@ -66,22 +66,34 @@ void C_active_brick::F_draw(HDC hdc, RECT& paint_area)
 void C_active_brick::F_setup_colors()
 {
 	int i;
-	int max_step = max_fade_step - 1;
-	unsigned char r, g, b;
 
 	for (i = 0; i < max_fade_step; i++)
 	{
-		r = C_config::light_red.R - i * (C_config::light_red.R - C_config::bg_color.R) / max_step;
-		g = C_config::light_red.G - i * (C_config::light_red.G - C_config::bg_color.G) / max_step;
-		b = C_config::light_red.B - i * (C_config::light_red.B - C_config::bg_color.B) / max_step;
-
-		C_config::F_create_pen_brush(r, g, b, fading_light_red_pens[i], fading_light_red_brushes[i]);
-
-
-		r = C_config::cyan.R - i * (C_config::cyan.R - C_config::bg_color.R) / max_step;
-		g = C_config::cyan.G - i * (C_config::cyan.G - C_config::bg_color.G) / max_step;
-		b = C_config::cyan.B - i * (C_config::cyan.B - C_config::bg_color.B) / max_step;
-
-		C_config::F_create_pen_brush(r, g, b, fading_cyan_pens[i], fading_cyan_brushes[i]);
+		F_get_fading_color(C_config::light_red, i, fading_light_red_pens[i], fading_light_red_brushes[i]);
+		F_get_fading_color(C_config::cyan, i, fading_cyan_pens[i], fading_cyan_brushes[i]);
 	}
 }// C_active_brick::F_setup_colors
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+unsigned char C_active_brick::F_get_fading_channel(unsigned char color, unsigned char bg_color, int step)
+{
+	return color - step * (color - bg_color) / max_fade_step - 1;
+}// C_active_brick::F_get_fading_channel
+
+
+
+
+//------------------------------------------------------------------------------------------------------------
+void C_active_brick::F_get_fading_color(const C_color &color, int step, HPEN &pen, HBRUSH &brush)
+{
+	unsigned char r, g, b;
+
+	r = F_get_fading_channel(color.R, C_config::bg_color.R, step);
+	g = F_get_fading_channel(color.G, C_config::bg_color.G, step);
+	b = F_get_fading_channel(color.B, C_config::bg_color.B, step);
+
+	C_config::F_create_pen_brush(r, g, b, pen, brush);
+}// C_active_brick::F_get_fading_color
